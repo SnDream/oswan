@@ -94,6 +94,7 @@ int			Menu_Continue_Sel(struct menu_item* self);
 
 int			Menu_Load_State_Sel(struct menu_item* self);
 int			Menu_Save_State_Sel(struct menu_item* self);
+int			Menu_State_ConfDone(struct menu_item* self);
 const char*	Menu_State_ConfText[];
 
 int			Menu_Scaling_ConfInit(struct menu_item* self);
@@ -125,7 +126,7 @@ struct menu_item Menu_Main_Item[] = {
 		.conf_y			= 0,
 		.conf_text		= Menu_State_ConfText,
 		.conf_init_call	= NULL,
-		.conf_done_call	= NULL,
+		.conf_done_call	= Menu_State_ConfDone,
 	}, {
 		.name			= "Save State",
 		.sel_call		= Menu_Save_State_Sel,
@@ -135,7 +136,7 @@ struct menu_item Menu_Main_Item[] = {
 		.conf_y			= 0,
 		.conf_text		= Menu_State_ConfText,
 		.conf_init_call	= NULL,
-		.conf_done_call	= NULL,
+		.conf_done_call	= Menu_State_ConfDone,
 	}, {
 		.name			= "Scaling",
 		.sel_call		= NULL,
@@ -169,12 +170,14 @@ struct menu_item Menu_Main_Item[] = {
 	},
 };
 
-/* Save/Load State */
+/* Continue */
 
 int Menu_Continue_Sel(struct menu_item* self)
 {
 	self->pmenu->menu_done = 1;
 }
+
+/* Save/Load State */
 
 int Menu_Load_State_Sel(struct menu_item* self)
 {
@@ -187,6 +190,18 @@ int Menu_Save_State_Sel(struct menu_item* self)
 	if (!cartridge_IsLoaded()) return 0;
 	WsSaveState(gameName, self->conf_sel);
 	self->pmenu->menu_done = 1;
+}
+int Menu_State_ConfDone(struct menu_item* self)
+{
+	int i;
+	for (i = 0; i < self->pmenu->item_num; i++) {
+		if (strcmp(self->pmenu->item[i].name, "Load State") == 0) {
+			self->pmenu->item[i].conf_sel = self->conf_sel;
+		} else if (strcmp(self->pmenu->item[i].name, "Save State") == 0) {
+			self->pmenu->item[i].conf_sel = self->conf_sel;
+		}
+	}
+	return 0;
 }
 const char* Menu_State_ConfText[] = {
 	"0", "1", "2", "3", "4",
