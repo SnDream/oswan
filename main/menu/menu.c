@@ -15,112 +15,622 @@ uint32_t profile_config = 0;
 struct hardcoded_keys keys_config[2];
 struct Menu__ menu_oswan;
 
-const char Main_Menu_Text[7][MAX_TEXT_SIZE] =
+void print_text_center(const char* text, uint32_t y)
 {
-	"Continue",
-	"Load State :",
-	"Save State :",
-	"Scaling :",
-	"Input Options",
-	"Exit"
-}; 
+	uint32_t sizeofarray = strnlen(text, MAX_TEXT_SIZE);
+	uint32_t x = (actualScreen->w - (sizeofarray * 8)) / 2;
+	
+	print_string(text, TextWhite, 0, x, y, Surface_to_Draw_menu);
+}
 
-const char Scaling_Text[3][MAX_TEXT_SIZE] =
+int SDLK2InputSel(SDLKey key)
 {
+	switch(key) {
+	case SDLK_UNKNOWN	:	return  0;	/* None */
+	case SDLK_UP		:	return  1;	/* UP button */
+	case SDLK_DOWN		:	return  2;	/* DOWN button */
+	case SDLK_LEFT		:	return  3;	/* LEFT button */
+	case SDLK_RIGHT		:	return  4;	/* RIGHT button */
+	case SDLK_LCTRL		:	return  5;	/* A button */
+	case SDLK_LALT		:	return  6;	/* B button */
+	case SDLK_LSHIFT	:	return  7;	/* X button */
+	case SDLK_SPACE		:	return  8;	/* Y button */
+	case SDLK_TAB		:	return  9;	/* L button */
+	case SDLK_BACKSPACE	:	return 10;	/* R button */
+	case SDLK_PAGEUP	:	return 11;	/* L2 button */
+	case SDLK_PAGEDOWN	:	return 12;	/* R2 button */
+	case SDLK_RETURN	:	return 13;	/* Start button */
+	case SDLK_ESCAPE	:	return 14;	/* Select button */
+	default				:	return 15;	/* Name Unknown */
+	}
+}
+
+SDLKey InputSel2SDLK(int sel)
+{
+	switch(sel) {
+	default	:	return SDLK_UNKNOWN		;	/* Name Unknown */
+	case  0	:	return SDLK_UNKNOWN		;	/* None */
+	case  1	:	return SDLK_UP			;	/* UP button */
+	case  2	:	return SDLK_DOWN		;	/* DOWN button */
+	case  3	:	return SDLK_LEFT		;	/* LEFT button */
+	case  4	:	return SDLK_RIGHT		;	/* RIGHT button */
+	case  5	:	return SDLK_LCTRL		;	/* A button */
+	case  6	:	return SDLK_LALT		;	/* B button */
+	case  7	:	return SDLK_LSHIFT		;	/* X button */
+	case  8	:	return SDLK_SPACE		;	/* Y button */
+	case  9	:	return SDLK_TAB			;	/* L button */
+	case 10	:	return SDLK_BACKSPACE	;	/* R button */
+	case 11	:	return SDLK_PAGEUP		;	/* L2 button */
+	case 12	:	return SDLK_PAGEDOWN	;	/* R2 button */
+	case 13	:	return SDLK_RETURN		;	/* Start button */
+	case 14	:	return SDLK_ESCAPE		;	/* Select button */
+	}
+}
+
+/* Main Menu */
+
+int					Menu_Main_Init(struct menu*);
+struct menu_item	Menu_Main_Item[];
+
+struct menu Menu_Main = {
+	.menu_x			= 0,
+	.menu_y			= 24,
+	.menu_init_call	= Menu_Main_Init,
+	.menu_done_call	= NULL,
+	.item_num		= 6,
+	.item_w			= 240,
+	.item_h			= 16,
+	.item			= Menu_Main_Item,
+	.font_x			= FONT_X_AUTO,
+	.font_y			= FONT_Y_AUTO,
+};
+
+int Menu_Main_Init(struct menu* self)
+{
+	print_text_center("Gameblabla's Oswan", 6);
+}
+
+int			Menu_Continue_Sel(struct menu_item* self);
+
+int			Menu_Load_State_Sel(struct menu_item* self);
+int			Menu_Save_State_Sel(struct menu_item* self);
+const char*	Menu_State_ConfText[];
+
+int			Menu_Scaling_ConfInit(struct menu_item* self);
+int			Menu_Scaling_ConfDone(struct menu_item* self);
+const char*	Menu_Scaling_ConfText[];
+
+struct menu	Menu_Input;
+const char*	Menu_Input_ConfText[];
+
+int			Menu_Exit_Sel(struct menu_item* self);
+
+struct menu_item Menu_Main_Item[] = {
+	{
+		.name			= "Continue",
+		.sel_call		= Menu_Continue_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 0,
+		.conf_x			= 0,
+		.conf_y			= 0,
+		.conf_text		= NULL,
+		.conf_init_call	= NULL,
+		.conf_done_call	= NULL,
+	}, {
+		.name			= "Load State",
+		.sel_call		= Menu_Load_State_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 10,
+		.conf_x			= 120,
+		.conf_y			= 0,
+		.conf_text		= Menu_State_ConfText,
+		.conf_init_call	= NULL,
+		.conf_done_call	= NULL,
+	}, {
+		.name			= "Save State",
+		.sel_call		= Menu_Save_State_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 10,
+		.conf_x			= 120,
+		.conf_y			= 0,
+		.conf_text		= Menu_State_ConfText,
+		.conf_init_call	= NULL,
+		.conf_done_call	= NULL,
+	}, {
+		.name			= "Scaling",
+		.sel_call		= NULL,
+		.sub_menu		= NULL,
+		.conf_num		= 3,
+		.conf_x			= 120,
+		.conf_y			= 0,
+		.conf_text		= Menu_Scaling_ConfText,
+		.conf_init_call	= Menu_Scaling_ConfInit,
+		.conf_done_call	= Menu_Scaling_ConfDone,
+	}, {
+		.name			= "Input Options",
+		.sel_call		= NULL,
+		.sub_menu		= &Menu_Input,
+		.conf_num		= 2,
+		.conf_x			= 120,
+		.conf_y			= 0,
+		.conf_text		= Menu_Input_ConfText,
+		.conf_init_call	= NULL,
+		.conf_done_call	= NULL,
+	}, {
+		.name			= "Exit",
+		.sel_call		= Menu_Exit_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 0,
+		.conf_x			= 0,
+		.conf_y			= 0,
+		.conf_text		= NULL,
+		.conf_init_call	= NULL,
+		.conf_done_call	= NULL,
+	},
+};
+
+/* Save/Load State */
+
+int Menu_Continue_Sel(struct menu_item* self)
+{
+	self->pmenu->menu_done = 1;
+}
+
+int Menu_Load_State_Sel(struct menu_item* self)
+{
+	if (!cartridge_IsLoaded()) return 0;
+	WsLoadState(gameName, self->conf_sel);
+	self->pmenu->menu_done = 1;
+}
+int Menu_Save_State_Sel(struct menu_item* self)
+{
+	if (!cartridge_IsLoaded()) return 0;
+	WsSaveState(gameName, self->conf_sel);
+	self->pmenu->menu_done = 1;
+}
+const char* Menu_State_ConfText[] = {
+	"0", "1", "2", "3", "4",
+	"5", "6", "7", "8", "9",
+};
+
+/* Scaling */
+
+int Menu_Scaling_ConfInit(struct menu_item* self)
+{
+	if (menu_oswan.scaling < 0 || menu_oswan.scaling > self->conf_num) {
+		menu_oswan.scaling = 0;
+	}
+	self->conf_sel = menu_oswan.scaling;
+}
+int Menu_Scaling_ConfDone(struct menu_item* self)
+{
+	menu_oswan.scaling = self->conf_sel;
+}
+const char* Menu_Scaling_ConfText[] = {
+#ifndef RS90
 	"Native",
 	"Fullscreen",
-	"Keep Aspect"
-}; 
+	"Keep Aspect",
+#else /* Compatible with upstream */
+	"Native",
+	"Still Native",
+	"Always Native",
+#endif
+};
 
-const char Controls_Text[12][MAX_TEXT_SIZE] =
-{
-	"Y1",    "Y2",
-	"Y3",    "Y4",
-	"X1",    "X2",
-	"X3",    "X4",
-	"OPTION", "START",
-	"A", 	   "B"
-}; 
+/* Input Options */
 
-const char Controls_Text_Nocenter[12][MAX_TEXT_SIZE] =
-{
-	{"Y1 (UP)   "},
-	{"Y2 (RIGHT)"},
-	{"Y3 (DOWN) "},
-	{"Y4 (LEFT) "},
-	{"X1 (UP)   "},
-	{"X2 (RIGHT)"},
-	{"X3 (DOWN) "},
-	{"X4 (LEFT) "},
-	{"OPTION    "},
-	{"START     "},
-	{"A         "},
-	{"B         "}
-}; 
+const char* Menu_Input_ConfText[] = {
+	"Horizontal",
+	"Vertical",
+};
 
-static const char* Return_Text_Button(uint32_t button)
+/* Input Options Submenu */
+
+int					Menu_Input_MenuInit(struct menu* self);
+int					Menu_Input_MenuDone(struct menu* self);
+struct menu_item	Menu_Input_Item[];
+
+struct menu Menu_Input = {
+	.menu_x			= 0,
+	.menu_y			= 0,
+	.menu_init_call	= Menu_Input_MenuInit,
+	.menu_done_call	= Menu_Input_MenuDone,
+	.item_num		= 12,
+	.item_w			= 264,
+	.item_h			= 12,
+	.item			= Menu_Input_Item,
+	.font_x			= FONT_X_AUTO,
+	.font_y			= FONT_Y_AUTO,
+};
+
+int Menu_Input_MenuInit(struct menu* self)
 {
-	switch(button)
+	return 0;
+}
+int Menu_Input_MenuDone(struct menu* self)
+{
+	return 0;
+}
+
+int			Menu_Input_Button_Sel(struct menu_item*);
+const char*	Menu_Input_Button_ConfText[];
+int			Menu_Input_Button_ConfInit(struct menu_item*);
+int			Menu_Input_Button_ConfDone(struct menu_item*);
+
+struct menu_item Menu_Input_Item[] = {
 	{
-		/* UP button */
+		.name			= "Y1 (UP)",
+		.sel_call		= Menu_Input_Button_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 16,
+		.conf_x			= 160,
+		.conf_y			= 0,
+		.conf_text		= Menu_Input_Button_ConfText,
+		.conf_init_call	= Menu_Input_Button_ConfInit,
+		.conf_done_call	= Menu_Input_Button_ConfDone,
+	}, {
+		.name			= "Y2 (RIGHT)",
+		.sel_call		= Menu_Input_Button_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 16,
+		.conf_x			= 160,
+		.conf_y			= 0,
+		.conf_text		= Menu_Input_Button_ConfText,
+		.conf_init_call	= Menu_Input_Button_ConfInit,
+		.conf_done_call	= Menu_Input_Button_ConfDone,
+	}, {
+		.name			= "Y3 (DOWN)",
+		.sel_call		= Menu_Input_Button_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 16,
+		.conf_x			= 160,
+		.conf_y			= 0,
+		.conf_text		= Menu_Input_Button_ConfText,
+		.conf_init_call	= Menu_Input_Button_ConfInit,
+		.conf_done_call	= Menu_Input_Button_ConfDone,
+	}, {
+		.name			= "Y4 (LEFT)",
+		.sel_call		= Menu_Input_Button_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 16,
+		.conf_x			= 160,
+		.conf_y			= 0,
+		.conf_text		= Menu_Input_Button_ConfText,
+		.conf_init_call	= Menu_Input_Button_ConfInit,
+		.conf_done_call	= Menu_Input_Button_ConfDone,
+	}, {
+		.name			= "X1 (UP)",
+		.sel_call		= Menu_Input_Button_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 16,
+		.conf_x			= 160,
+		.conf_y			= 0,
+		.conf_text		= Menu_Input_Button_ConfText,
+		.conf_init_call	= Menu_Input_Button_ConfInit,
+		.conf_done_call	= Menu_Input_Button_ConfDone,
+	}, {
+		.name			= "X2 (RIGHT)",
+		.sel_call		= Menu_Input_Button_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 16,
+		.conf_x			= 160,
+		.conf_y			= 0,
+		.conf_text		= Menu_Input_Button_ConfText,
+		.conf_init_call	= Menu_Input_Button_ConfInit,
+		.conf_done_call	= Menu_Input_Button_ConfDone,
+	}, {
+		.name			= "X3 (DOWN)",
+		.sel_call		= Menu_Input_Button_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 16,
+		.conf_x			= 160,
+		.conf_y			= 0,
+		.conf_text		= Menu_Input_Button_ConfText,
+		.conf_init_call	= Menu_Input_Button_ConfInit,
+		.conf_done_call	= Menu_Input_Button_ConfDone,
+	}, {
+		.name			= "X4 (LEFT)",
+		.sel_call		= Menu_Input_Button_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 16,
+		.conf_x			= 160,
+		.conf_y			= 0,
+		.conf_text		= Menu_Input_Button_ConfText,
+		.conf_init_call	= Menu_Input_Button_ConfInit,
+		.conf_done_call	= Menu_Input_Button_ConfDone,
+	}, {
+		.name			= "OPTION",
+		.sel_call		= Menu_Input_Button_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 16,
+		.conf_x			= 160,
+		.conf_y			= 0,
+		.conf_text		= Menu_Input_Button_ConfText,
+		.conf_init_call	= Menu_Input_Button_ConfInit,
+		.conf_done_call	= Menu_Input_Button_ConfDone,
+	}, {
+		.name			= "START",
+		.sel_call		= Menu_Input_Button_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 16,
+		.conf_x			= 160,
+		.conf_y			= 0,
+		.conf_text		= Menu_Input_Button_ConfText,
+		.conf_init_call	= Menu_Input_Button_ConfInit,
+		.conf_done_call	= Menu_Input_Button_ConfDone,
+	}, {
+		.name			= "A BUTTON",
+		.sel_call		= Menu_Input_Button_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 16,
+		.conf_x			= 160,
+		.conf_y			= 0,
+		.conf_text		= Menu_Input_Button_ConfText,
+		.conf_init_call	= Menu_Input_Button_ConfInit,
+		.conf_done_call	= Menu_Input_Button_ConfDone,
+	}, {
+		.name			= "B BUTTON",
+		.sel_call		= Menu_Input_Button_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 16,
+		.conf_x			= 160,
+		.conf_y			= 0,
+		.conf_text		= Menu_Input_Button_ConfText,
+		.conf_init_call	= Menu_Input_Button_ConfInit,
+		.conf_done_call	= Menu_Input_Button_ConfDone,
+	}, {
+		.name			= "Emulator Menu",
+		.sel_call		= Menu_Input_Button_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 16,
+		.conf_x			= 160,
+		.conf_y			= 0,
+		.conf_text		= Menu_Input_Button_ConfText,
+		.conf_init_call	= Menu_Input_Button_ConfInit,
+		.conf_done_call	= Menu_Input_Button_ConfDone,
+	}, {
+		.name			= "Redirect Func",
+		.sel_call		= Menu_Input_Button_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 16,
+		.conf_x			= 160,
+		.conf_y			= 0,
+		.conf_text		= Menu_Input_Button_ConfText,
+		.conf_init_call	= Menu_Input_Button_ConfInit,
+		.conf_done_call	= Menu_Input_Button_ConfDone,
+	}, {
+		.name			= "Redirect Act(Rorate)",
+		.sel_call		= Menu_Input_Button_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 16,
+		.conf_x			= 160,
+		.conf_y			= 0,
+		.conf_text		= Menu_Input_Button_ConfText,
+		.conf_init_call	= Menu_Input_Button_ConfInit,
+		.conf_done_call	= Menu_Input_Button_ConfDone,
+	}, {
+		.name			= "Redirect Mode",
+		.sel_call		= Menu_Input_Button_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 16,
+		.conf_x			= 160,
+		.conf_y			= 0,
+		.conf_text		= Menu_Input_Button_ConfText,
+		.conf_init_call	= Menu_Input_Button_ConfInit,
+		.conf_done_call	= Menu_Input_Button_ConfDone,
+	}, {
+		.name			= "Redirect Pair",
+		.sel_call		= Menu_Input_Button_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 16,
+		.conf_x			= 160,
+		.conf_y			= 0,
+		.conf_text		= Menu_Input_Button_ConfText,
+		.conf_init_call	= Menu_Input_Button_ConfInit,
+		.conf_done_call	= Menu_Input_Button_ConfDone,
+	}
+};
+
+int Menu_Input_Button_Sel(struct menu_item* self)
+{
+	int type, item_sel;
+	SDL_Event event;
+
+	type = self->pmenu->pitem->conf_sel;
+	item_sel = self->pmenu->item_sel;
+	if (type != 0 && type != 1) return 0;
+	if (item_sel < 0 || item_sel >= self->pmenu->item_num) return 0;
+
+	Clear_Menu();
+	print_text_center("Press a key for", 72 - 2);
+	print_text_center(self->name, 80 + 2);
+	Update_Screen();
+
+	do {
+		SDL_WaitEvent(&event);
+	} while (event.type != SDL_KEYDOWN);
+	self->conf_sel = SDLK2InputSel(event.key.keysym.sym);
+	if (self->conf_sel < 0 || self->conf_sel >= self->conf_num) {
+		self->conf_sel = 0;
+		keys_config[type].buttons[item_sel] = SDLK_UNKNOWN;
+	} else {
+		keys_config[type].buttons[item_sel] = event.key.keysym.sym;
+	}
+	return 0;
+}
+int Menu_Input_Button_ConfInit(struct menu_item* self)
+{
+	int type, item_sel;
+	SDLKey key;
+
+	type = self->pmenu->pitem->conf_sel;
+	item_sel = self->pmenu->item_sel;
+	if (type != 0 && type != 1) return 0;
+	if (item_sel < 0 || item_sel >= self->pmenu->item_num) return 0;
+
+	key = keys_config[type].buttons[item_sel];
+	self->conf_sel = SDLK2InputSel(key);
+	return 0;
+}
+int Menu_Input_Button_ConfDone(struct menu_item* self)
+{
+	int type, item_sel;
+	SDLKey key;
+
+	type = self->pmenu->pitem->conf_sel;
+	item_sel = self->pmenu->item_sel;
+	if (type != 0 && type != 1) return 0;
+	if (item_sel < 0 || item_sel >= self->pmenu->item_num) return 0;
+
+	key = InputSel2SDLK(self->conf_sel);
+	keys_config[type].buttons[item_sel] = key;
+	return 0;
+}
+
+const char*	Menu_Input_Button_ConfText[] = {
+	"None",
+	"D-UP",
+	"D-DOWN",
+	"D-LEFT",
+	"D-RIGHT",
+	"A",
+	"B",
+	"X",
+	"Y",
+	"L",
+	"R",
+	"L2",
+	"R2",
+	"Start",
+	"Select",
+	"Unknown",
+};
+
+/* Exit */
+
+int Menu_Exit_Sel(struct menu_item* self)
+{
+	m_Flag = GF_GAMEQUIT;
+	self->pmenu->menu_done = 1;
+}
+
+/* Menu Functions */
+
+int Draw_Menu(struct menu* m)
+{
+	int i;
+	int item_x, item_y;
+	int font_x, font_y;
+
+	if (!m || m->item_num == 0) return 0;
+
+	if (m->font_x == FONT_X_AUTO) font_x = 2;
+	if (m->font_y == FONT_Y_AUTO) font_y = (m->item_h > 8) ? (m->item_h - 7) / 2 : 0;
+
+	item_x = m->menu_x;
+	item_y = m->menu_y;
+
+	for (i = 0; i < m->item_num; i++) {
+		if(i == m->item_sel) Draw_Rect_Menu(item_x, item_y, m->item_w, m->item_h);
+		if (m->item[i].name) {
+			print_string(
+					m->item[i].name,
+					TextWhite, 0,
+					item_x + font_x,
+					item_y + font_y,
+					Surface_to_Draw_menu);
+		}
+		if (m->item[i].conf_num) {
+			print_string(
+					m->item[i].conf_text[m->item[i].conf_sel],
+					TextWhite, 0,
+					item_x + font_x + m->item[i].conf_x, 
+					item_y + font_y + m->item[i].conf_y,
+					Surface_to_Draw_menu);
+		}
+		item_y += m->item_h;
+	}
+	return 0;
+}
+
+int Handle_Menu(struct menu* m)
+{
+	int ret;
+	int i;
+	SDL_Event event;
+	struct menu_item* mi;
+
+	if (!m || m->item_num == 0) return 0;
+
+	m->item_sel = 0;
+	m->menu_done = 0;
+	for (i = 0; i < m->item_num; i++) {
+		m->item_sel = i;
+		mi = &(m->item[i]);
+		mi->pmenu = m;
+		if (mi->conf_init_call) mi->conf_init_call(mi);
+	}
+
+	while (!m->menu_done) {
+		Clear_Menu();
+		if (m->menu_init_call) m->menu_init_call(m);
+		Draw_Menu(m);
+		Update_Screen();
+
+		do {
+			SDL_WaitEvent(&event);
+		} while (event.type != SDL_KEYDOWN);
+		
+		mi = &(m->item[m->item_sel]);
+		switch (event.key.keysym.sym) {
 		case SDLK_UP:
-			return "D-UP";
-		break;
-		/* DOWN button */
+			if (m->item_sel == 0) m->item_sel = m->item_num;
+			--(m->item_sel);
+			mi = &(m->item[m->item_sel]);
+			break;
 		case SDLK_DOWN:
-			return "D-DOWN";
-		break;
-		/* LEFT button */
-		case SDLK_LEFT:
-			return "D-LEFT";
-		break;
-		/* RIGHT button */
+			++(m->item_sel);
+			if (m->item_sel == m->item_num) m->item_sel = 0;
+			mi = &(m->item[m->item_sel]);
+			break;
 		case SDLK_RIGHT:
-			return "D-RIGHT";
-		break;
-		/* A button */
-		case SDLK_LCTRL:
-			return "A";
-		break;
-		/* B button */
-		case SDLK_LALT:
-			return "B";
-		break;
-		/* X button */
-		case SDLK_LSHIFT:
-			return "X";
-		break;
-		/* Y button */
-		case SDLK_SPACE:
-			return "Y";
-		break;
-		/* L button */
-		case SDLK_TAB:
-			return "L";
-		break;
-		/* R button */
-		case SDLK_BACKSPACE:
-			return "R";
-		break;
-		case SDLK_PAGEUP:
-			return "L2";
-		break;
-		case SDLK_PAGEDOWN:
-			return "R2";
-		break;
-		case SDLK_RETURN:
-			return "Start";
-		break;
-		case SDLK_ESCAPE:
-			return "Select";
-		break;
+			++(mi->conf_sel);
+			if (mi->conf_sel == mi->conf_num) mi->conf_sel = 0;
+			if (mi->conf_done_call) mi->conf_done_call(mi);
+			break;
+		case SDLK_LEFT:
+			if (mi->conf_sel == 0) mi->conf_sel = mi->conf_num;
+			--(mi->conf_sel);
+			if (mi->conf_done_call) mi->conf_done_call(mi);
+			break;
+		case SDLK_LCTRL: /* A */
+			if (mi->sel_call) mi->sel_call(mi);
+			if (mi->sub_menu) {
+				mi->sub_menu->pitem = mi;
+				Handle_Menu(mi->sub_menu);
+			}
+			break;
+		case SDLK_LALT:  /* B */
+			if (m->menu_done_call) m->menu_done_call(m);
+			m->menu_done = 1;
+			break;
 		default:
-			return "Unknown";
-		break;
-		case 0:
-			return "...";
-		break;
-	}	
+			break;
+		}
+	}
+}
+
+void Menu()
+{
+	Handle_Menu(&Menu_Main);
+
+	if (m_Flag == GF_MAINUI) m_Flag = GF_GAMERUNNING;
+
+	SetVideo(menu_oswan.scaling);
+
+	/* Clear the screen before going back to Game or exiting the emulator */
+	Clear_Screen();
 }
 
 /* Configuration files */
@@ -251,251 +761,3 @@ void Load_State(void)
 }
 
 /* Menu code */
-
-static void Set_Menu(uint32_t submenu)
-{
-	Clear_Screen_Norefresh();
-	if (submenu == CONTROLS_MENU)
-	{
-		menu_oswan.Choose_Menu_value = 0;
-		menu_oswan.maximum_menu = 12;
-		menu_oswan.state_number = 0;
-		if (!menu_oswan.scaling) menu_oswan.scaling = 0;
-		menu_oswan.menu_state = 1;
-		Draw_Rect_Menu(Y_MENU_CONTROLS, 15);
-	}
-	else if (submenu == EMULATOR_MAIN_MENU)
-	{
-		menu_oswan.Choose_Menu_value = 0;
-		menu_oswan.maximum_menu = 6;
-		menu_oswan.state_number = 0;
-		if (!menu_oswan.scaling) menu_oswan.scaling = 0;
-		menu_oswan.menu_state = 0;
-		Draw_Rect_Menu(Y_MAIN_MENU - 22, 16);
-	}
-	else if (submenu == SETTINGS_KEY_SCREEN)
-	{
-		menu_oswan.menu_state = 2;
-	}
-	/* Useful for going back to Controls menu without resetting everything back to zero */
-	else if (submenu == CONTROLS_MENU_NOSET)
-	{
-		menu_oswan.menu_state = 1;
-	}
-}
-
-void AddItem(const char* text, uint32_t entry)
-{
-	uint32_t y = 24 + (entry * 24);
-	uint32_t x = 8;
-	
-	print_string(text, TextWhite, 0, x, y, Surface_to_Draw_menu);
-}
-
-void AddItem_Alt(const char* text, uint32_t entry)
-{
-	uint32_t y = 0 + (entry * 15);
-	uint32_t x = 8;
-	
-	print_string(text, TextWhite, 0, x, y, Surface_to_Draw_menu);
-}
-
-void print_text_center(const char* text, uint32_t y)
-{
-	uint32_t sizeofarray = strnlen(text, MAX_TEXT_SIZE);
-	uint32_t x = (actualScreen->w - (sizeofarray * 8)) / 2;
-	
-	print_string(text, TextWhite, 0, x, y, Surface_to_Draw_menu);
-}
-
-static uint32_t sdl_controls_update_input(SDLKey k, int32_t p)
-{
-	switch(menu_oswan.menu_state)
-	{
-		case 0:
-		switch(k)
-		{
-			case SDLK_UP:
-				if (menu_oswan.Choose_Menu_value == 0) menu_oswan.Choose_Menu_value = menu_oswan.maximum_menu-1;
-				else menu_oswan.Choose_Menu_value--;
-			break;
-			case SDLK_DOWN:
-				menu_oswan.Choose_Menu_value++;
-				if (menu_oswan.Choose_Menu_value > menu_oswan.maximum_menu-1) menu_oswan.Choose_Menu_value = 0;
-			break;
-			case SDLK_LEFT:
-				if (menu_oswan.Choose_Menu_value == 1 || menu_oswan.Choose_Menu_value == 2)
-				{
-					if (menu_oswan.state_number == 0) menu_oswan.state_number = 9;
-					else menu_oswan.state_number--;
-				}
-				else if (menu_oswan.Choose_Menu_value == 3)
-				{
-					if (menu_oswan.scaling == 0) menu_oswan.scaling = 2;
-					else menu_oswan.scaling--;
-				}
-			break;
-			case SDLK_RIGHT:
-				if (menu_oswan.Choose_Menu_value == 1 || menu_oswan.Choose_Menu_value == 2)
-				{
-					menu_oswan.state_number++;
-					if (menu_oswan.state_number > 9) menu_oswan.state_number = 0;
-				}
-				else if (menu_oswan.Choose_Menu_value == 3)
-				{
-					menu_oswan.scaling++;
-					if (menu_oswan.scaling > 2) menu_oswan.scaling = 0;
-				}
-			break;
-			case SDLK_LCTRL:
-			case SDLK_RETURN:
-				if (menu_oswan.Choose_Menu_value == 4) Set_Menu(CONTROLS_MENU);
-				else if (menu_oswan.Choose_Menu_value == 5)
-				{
-					done_menu = 1;
-					m_Flag = GF_GAMEQUIT;
-				}
-				else if (menu_oswan.Choose_Menu_value == 0)
-				{
-					done_menu = 1;
-					m_Flag = GF_GAMERUNNING;
-				}
-				else if (menu_oswan.Choose_Menu_value == 1)
-				{
-					Load_State();
-				}
-				else if (menu_oswan.Choose_Menu_value == 2)
-				{
-					Save_State();
-				}
-			break;
-		}
-		break;
-		case 1:
-		switch(k)
-		{	
-			case SDLK_UP:
-				if (menu_oswan.Choose_Menu_value == 0) menu_oswan.Choose_Menu_value = menu_oswan.maximum_menu-1;
-				else menu_oswan.Choose_Menu_value--;
-			break;
-			case SDLK_DOWN:
-				menu_oswan.Choose_Menu_value++;
-				if (menu_oswan.Choose_Menu_value > menu_oswan.maximum_menu-1) menu_oswan.Choose_Menu_value = 0;
-			break;
-			case SDLK_TAB:
-			case SDLK_LEFT:
-				profile_config = 0;
-			break;
-			case SDLK_BACKSPACE:
-			case SDLK_RIGHT:
-				profile_config = 1;
-			break;
-			case SDLK_LCTRL:
-			case SDLK_RETURN:
-				Set_Menu(SETTINGS_KEY_SCREEN);
-			break;
-			case SDLK_LALT:
-				Set_Menu(EMULATOR_MAIN_MENU);
-			break;
-		}
-		break;
-		case 2:
-			keys_config[profile_config].buttons[menu_oswan.Choose_Menu_value] = k;
-			Set_Menu(CONTROLS_MENU_NOSET);
-		break;
-	}
-	return 0;
-}
-
-static void Controls_Menu()
-{
-	SDL_Event event;
-	while (SDL_PollEvent(&event))
-	{
-		switch (event.type)
-		{
-			case SDL_KEYDOWN:
-				sdl_controls_update_input(event.key.keysym.sym, 0);
-			break;
-		}
-	}
-}
-
-/* Main Menu */
-
-void Menu()
-{
-	char text[MAX_TEXT_SIZE];
-	uint32_t i;
-	
-	Set_Menu(0);
-	
-	done_menu = 0;
-	
-	while(!done_menu)
-	{
-		Clear_Menu();
-		Controls_Menu();
-
-		switch(menu_oswan.menu_state)
-		{
-			case 0:
-			
-			Draw_Rect_Menu(Y_MAIN_MENU - 22, 16);
-			
-			print_text_center("Gameblabla's Oswan", 6);
-			
-			for (i=0;i<menu_oswan.maximum_menu;i++)
-			{
-				/* Load/Save States */
-				if (i == 1 || i == 2)
-				{
-					snprintf(text, sizeof(text), "%s %u", Main_Menu_Text[i], menu_oswan.state_number);
-					AddItem(text, i);
-				}
-				/* Scaling */
-				else if (i == 3)
-				{
-					snprintf(text, sizeof(text), "%s %s", Main_Menu_Text[i], Scaling_Text[menu_oswan.scaling]);
-					AddItem(text, i);
-				}
-				else
-				{
-					AddItem(Main_Menu_Text[i], i);
-				}
-			}
-			break;
-			case 1:
-				#ifdef RS90
-				if (menu_oswan.Choose_Menu_value == 11)
-				{
-					Draw_Rect_Menu(0, 12);
-					snprintf(text, sizeof(text), "%s : %s", Controls_Text_Nocenter[11], Return_Text_Button(keys_config[profile_config].buttons[11]));
-					AddItem_Alt(text, 0);
-				}
-				else
-				#endif
-				{
-					Draw_Rect_Menu((menu_oswan.Choose_Menu_value * 15), 12);
-					for (i=0;i<menu_oswan.maximum_menu;i++)
-					{
-						snprintf(text, sizeof(text), "%s : %s", Controls_Text_Nocenter[i], Return_Text_Button(keys_config[profile_config].buttons[i]));
-						AddItem_Alt(text, i);
-					}
-				}
-				
-			break;
-			case 2:
-				snprintf(text, sizeof(text), "Press a key for %s", Controls_Text[menu_oswan.Choose_Menu_value]);
-				print_text_center(text, 128);
-			break;
-		}
-
-		Update_Screen();
-	}
-	
-	SetVideo(menu_oswan.scaling);
-	
-	/* Clear the screen before going back to Game or exiting the emulator */
-	Clear_Screen();
-}

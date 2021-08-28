@@ -49,14 +49,9 @@ void Clear_Screen_Norefresh(void)
 	SDL_FillRect(actualScreen, NULL, 0);
 }
 
-void Draw_Rect_Menu(uint32_t y, uint32_t h)
+void Draw_Rect_Menu(int x, int y, int w, int h)
 {
-	//memset(Surface_to_Draw + ((actualScreen->w*2)*(y)), RGB565(4,3,95), (actualScreen->w*h)*2);
-	SDL_Rect pos;
-	pos.x = 0;
-	pos.y = y;
-	pos.w = menuscreen->w;
-	pos.h = h;
+	SDL_Rect pos = {.x = x, .y = y, .w = w, .h = h};
 	SDL_FillRect(menuscreen, &pos, RGB565(4,3,95));
 }
 

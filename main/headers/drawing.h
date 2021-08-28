@@ -9,7 +9,7 @@ extern void Set_resolution(uint16_t w, uint16_t h);
 extern void SetVideo(uint8_t mode);
 extern void Clear_Screen(void);
 extern void Clear_Screen_Norefresh(void);
-extern void Draw_Rect_Menu(uint32_t y, uint32_t h);
+extern void Draw_Rect_Menu(int x, int y, int w, int h);
 extern void Cleanup_Screen(void);
 extern void Update_Screen(void);
 extern void Clear_Menu(void);
