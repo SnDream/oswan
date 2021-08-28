@@ -172,10 +172,17 @@ void load_config(void)
 		keys_config[0].buttons[10] = 306;
 		keys_config[0].buttons[11] = 308;
 		
+#ifndef RS90
 		keys_config[1].buttons[0] = 276;
 		keys_config[1].buttons[1] = 273;
 		keys_config[1].buttons[2] = 275;
 		keys_config[1].buttons[3] = 274;
+#else
+		keys_config[1].buttons[0] = 273;
+		keys_config[1].buttons[1] = 275;
+		keys_config[1].buttons[2] = 274;
+		keys_config[1].buttons[3] = 276;
+#endif
 		
 		keys_config[1].buttons[4] = 306;
 		keys_config[1].buttons[5] = 308;
