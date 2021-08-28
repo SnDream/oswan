@@ -131,8 +131,8 @@ void load_config(void)
 	char home_path[PATH_MAX], cfg_path[PATH_MAX];
 	FILE* fp;
 	
-	snprintf(home_path, sizeof(home_path), "%s/.oswanemu", getenv("HOME"));
-	snprintf(cfg_path, sizeof(cfg_path), "%s/config.bin", home_path);
+	snprintf(home_path, sizeof(home_path), "%s%s", PATH_DIRECTORY, SAVE_DIRECTORY);
+	snprintf(cfg_path, sizeof(cfg_path), "%sconfig.bin", home_path);
 	
 	if (access( home_path, F_OK ) == -1)
 	{
@@ -203,8 +203,8 @@ void save_config(void)
 	char home_path[PATH_MAX], cfg_path[PATH_MAX];
 	FILE* fp;
 	
-	snprintf(home_path, sizeof(home_path), "%s/.oswan", getenv("HOME"));
-	snprintf(cfg_path, sizeof(cfg_path), "%s/config.bin", home_path);
+	snprintf(home_path, sizeof(home_path), "%s%s", PATH_DIRECTORY, SAVE_DIRECTORY);
+	snprintf(cfg_path, sizeof(cfg_path), "%sconfig.bin", home_path);
 	
 	if (access( home_path, F_OK ) == -1)
 	{

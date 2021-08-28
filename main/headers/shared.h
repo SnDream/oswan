@@ -19,8 +19,13 @@
 #define PATH_MAX 2048
 #endif
 
+#ifndef RS90
 #define MENU_SCREEN_WIDTH 320
 #define MENU_SCREEN_HEIGHT 240
+#else
+#define MENU_SCREEN_WIDTH 240
+#define MENU_SCREEN_HEIGHT 160
+#endif
 
 #ifdef GCW0
 	#ifndef HOME_SUPPORT
