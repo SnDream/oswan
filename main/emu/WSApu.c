@@ -10,7 +10,7 @@ SOUND Ch[4];
 SWEEP Swp;
 NOISE Noise; 
 
-int16_t sndbuffer[2][SND_RNGSIZE]; /* Sound Ring Buffer */
+int16_t sndbuffer[SND_RNGSIZE]; /* Sound Ring Buffer */
 int32_t rBuf, wBuf;
 
 int8_t VoiceOn;
@@ -243,10 +243,16 @@ void apuWaveSet(void)
     int16_t LL, RR, vVol;
     uint16_t index;
     uint32_t channel;
+    int buf_len;
 
     Sound_APU_Start();
     
     apuSweep();
+
+#ifdef NATIVE_AUDIO
+    buf_len = apuBufLen();
+    if (buf_len > (SND_RNGSIZE - SND_BNKSIZE)) return;
+#endif
     
     for (channel = 0; channel < 4; channel++)
     {
@@ -301,12 +307,24 @@ void apuWaveSet(void)
     RR = (rVol[0] + rVol[1] + rVol[2] + rVol[3] + vVol) * WAV_VOLUME;
 
 	#ifdef NATIVE_AUDIO
-	sndbuffer[0][wBuf] = LL;
-	sndbuffer[1][wBuf] = RR;
-	if (++wBuf >= SND_RNGSIZE)
-	{
-		wBuf = 0;
-	}
+    if (buf_len < SND_BNKSIZE * 4) {
+        sndbuffer[wBuf++] = LL;
+        sndbuffer[wBuf++] = RR;
+        wBuf &= SND_RNGSIZE - 1;
+        sndbuffer[wBuf++] = LL;
+        sndbuffer[wBuf++] = RR;
+        wBuf &= SND_RNGSIZE - 1;
+        sndbuffer[wBuf++] = LL;
+        sndbuffer[wBuf++] = RR;
+        wBuf &= SND_RNGSIZE - 1;
+        sndbuffer[wBuf++] = LL;
+        sndbuffer[wBuf++] = RR;
+        wBuf &= SND_RNGSIZE - 1;
+    } else {
+        sndbuffer[wBuf++] = LL;
+        sndbuffer[wBuf++] = RR;
+        wBuf &= SND_RNGSIZE - 1;
+    }
 	#else
 	if (convert_multiplier == MULT) 
 	{
@@ -319,12 +337,9 @@ void apuWaveSet(void)
 
 	for (uint32_t i=0;i<convert_multiplier;i++)	/* 48000/12000 */
 	{ 
-		sndbuffer[0][wBuf] = LL;
-		sndbuffer[1][wBuf] = RR;
-		if (++wBuf >= SND_RNGSIZE)
-		{
-			wBuf = 0;
-		}
+        sndbuffer[wBuf++] = LL;
+        sndbuffer[wBuf++] = RR;
+        wBuf &= SND_RNGSIZE - 1;
 	}
 	#endif
 	

@@ -36,17 +36,7 @@ static uint16_t HTimer;
 static uint16_t VTimer;
 static uint8_t RtcCount;
 
-#ifdef FRAMESKIP
 int32_t FrameSkip = 0;
-static int32_t SkipCnt = 0;
-static const int32_t TblSkip[5][5] = {
-    {1,1,1,1,1},
-    {0,1,1,1,1},
-    {0,1,0,1,1},
-    {0,0,1,0,1},
-    {0,0,0,0,1},
-};
-#endif
 
 #ifdef SOUND_EMULATION
 static uint32_t WaveMap;
@@ -835,27 +825,14 @@ int32_t Interrupt(void)
 
             if(IO[LCDSLP] & 0x01)
             {
-				#ifdef FRAMESKIP
-				if(IO[RSTRL] == 0)
-				{
-					SkipCnt--;
-					if (SkipCnt < 0)
-					{
-						SkipCnt = 4;
-					}
-				}
-				if(TblSkip[FrameSkip][SkipCnt])
-				#endif
-				{
-					if (IO[RSTRL] < 144)
-					{
-						RefreshLine(IO[RSTRL]);
-					}
-					else if (IO[RSTRL] == 144)
-					{
-						graphics_paint();
-					}
-				}
+                if (FrameSkip == 0 && IO[RSTRL] < 144)
+                {
+                    RefreshLine(IO[RSTRL]);
+                }
+                else if (IO[RSTRL] == 144)
+                {
+                    graphics_paint();
+                }
             }
             break;
         case 6:

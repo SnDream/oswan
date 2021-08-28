@@ -16,7 +16,7 @@
 #endif
 
 #define MULT 3
-#define WAV_VOLUME 30
+#define WAV_VOLUME 32
 
 typedef struct sound 
 {
@@ -50,7 +50,7 @@ extern int16_t Sound[7];
 /* Required for sound.c */
 extern int32_t rBuf, wBuf;
 extern int32_t apuBufLen(void);
-extern int16_t sndbuffer[2][SND_RNGSIZE];
+extern int16_t sndbuffer[SND_RNGSIZE];
 
 int32_t apuBufLen(void);
 void apuWaveVolume(int32_t);

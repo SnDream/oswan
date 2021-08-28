@@ -16,34 +16,29 @@ static void SDL_callback(void *userdata, uint8_t *stream, int32_t len)
 	int32_t i;
 	uint16_t *buffer = (uint16_t *) stream;
 	
-	len /= 4;
+	len /= 2;
 	
     if (len <= 0 || !buffer)
 	{
 		return;
 	}
 
-	SDL_LockMutex(sound_mutex);
+	// SDL_LockMutex(sound_mutex);
 
-	if (apuBufLen() < len) 
-	{
-		SDL_CondWait(sound_cv, sound_mutex);
-	}
-	else
-	{
-		for (i=0; i < len; i++)
-		{
-			*buffer++ = sndbuffer[0][rBuf];
-			*buffer++ = sndbuffer[1][rBuf];
-			if (++rBuf >= SND_RNGSIZE) 
-			{
-				rBuf = 0;
-			}
+	if (apuBufLen() * sizeof(uint16_t) >= len) {
+		if (rBuf + len <= SND_RNGSIZE) {
+			memcpy(buffer, sndbuffer + rBuf, len * sizeof(uint16_t));
+			rBuf += len;
+		} else {
+			i = SND_RNGSIZE - rBuf;
+			memcpy(buffer, sndbuffer + rBuf, i * sizeof(uint16_t));
+			memcpy(buffer + i, sndbuffer, (len - i) * sizeof(uint16_t));
+			rBuf = len - i;
 		}
 	}
 
-	SDL_UnlockMutex(sound_mutex);
-	SDL_CondSignal(sound_cv);
+	// SDL_UnlockMutex(sound_mutex);
+	// SDL_CondSignal(sound_cv);
 }
 #endif
 
@@ -71,8 +66,8 @@ void Init_Sound()
         //exit(1);
     }
     
-	sound_mutex = SDL_CreateMutex();
-	sound_cv = SDL_CreateCond();
+	// sound_mutex = SDL_CreateMutex();
+	// sound_cv = SDL_CreateCond();
 #endif
 }
 
@@ -101,22 +96,24 @@ void Cleanup_Sound()
 void Sound_APUClose()
 {
 #ifdef SOUND_ON
-	SDL_CondSignal(sound_cv);
+	// SDL_CondSignal(sound_cv);
 #endif
 }
 
 void Sound_APU_Start()
 {
 #ifdef SOUND_ON
-	SDL_LockMutex(sound_mutex);
+	// SDL_LockAudio();
+	// SDL_LockMutex(sound_mutex);
 #endif
 }
 
 void Sound_APU_End()
 {
 #ifdef SOUND_ON
-	SDL_UnlockMutex(sound_mutex);
-	SDL_CondSignal(sound_cv);
+	// SDL_UnlockAudio();
+	// SDL_UnlockMutex(sound_mutex);
+	// SDL_CondSignal(sound_cv);
 #endif
 }
 
