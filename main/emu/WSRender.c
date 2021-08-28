@@ -2,6 +2,7 @@
 #include "WS.h"
 #include "shared.h"
 #include "cpu/necintrf.h"
+#include "drawing.h"
 
 #define MAP_TILE 0x01FF
 #define MAP_PAL  0x1E00
@@ -171,7 +172,11 @@ void RefreshLine(const uint16_t Line)
     int32_t PalIndex;
     int16_t i, j, k;
     uint16_t BaseCol; 
+    #ifndef RS90
     pSBuf = FrameBuffer + Line * 240 + 8;	// +8 offset
+    #else
+    pSBuf = FrameBuffer + Line * 240;	// +8 offset move to FrameBuffer set
+    #endif
     pSWrBuf = pSBuf;
 
     if(IO[LCDSLP] & 0x01)
@@ -245,8 +250,8 @@ void RefreshLine(const uint16_t Line)
             if((Line >= IO[SCR2WT]) && (Line <= IO[SCR2WB]))
                 { for(i = IO[SCR2WL], pW = WBuf + 8 + i; (i <= IO[SCR2WR]) && (i < 224); i++) *pW++ = 1; }
         } else {
-	    for(i = 0, pW = WBuf + 8; i < 224; i+=4) *(uint32_t*)(pW+i) = 0;
-	}
+            for(i = 0, pW = WBuf + 8; i < 224; i+=4) *(uint32_t*)(pW+i) = 0;
+        }
 
         OffsetX = IO[SCR2X] & 0x07;
         pSWrBuf = pSBuf - OffsetX;

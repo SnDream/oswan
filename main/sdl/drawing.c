@@ -12,9 +12,14 @@ void SetVideo(uint8_t mode)
 	actualScreen = SDL_SetVideoMode(REAL_SCREEN_WIDTH, REAL_SCREEN_HEIGHT, BITDEPTH_OSWAN, FLAG_VIDEO);
 	if (!menuscreen) menuscreen = SDL_CreateRGBSurface(SDL_SWSURFACE, MENU_SCREEN_WIDTH, MENU_SCREEN_HEIGHT, BITDEPTH_OSWAN, 0,0,0,0);
 	
-	if (!ws_backbuffer) ws_backbuffer = SDL_CreateRGBSurface(SDL_SWSURFACE, 240, 144, BITDEPTH_OSWAN, 0,0,0,0);
+	#ifndef RS90
+	if (!ws_backbuffer) ws_backbuffer = SDL_CreateRGBSurface(SDL_SWSURFACE, 240, 144, BITDEPTH_OSWAN, 0,0,0,0); */
 	
 	FrameBuffer = ws_backbuffer->pixels;
+	#else
+	/* Write directly in RS90 */
+	FrameBuffer = actualScreen->pixels + (8 + 8 * 240) * sizeof(uint16_t);
+	#endif
 }
 
 void Clear_Screen(void)
@@ -62,6 +67,9 @@ void Update_Screen()
 		SDL_BlitSurface(menuscreen, NULL, actualScreen, NULL);
 	}
 	SDL_Flip(actualScreen);
+	#ifdef RS90
+	FrameBuffer = actualScreen->pixels + (8 + 8 * 240) * sizeof(uint16_t);
+	#endif
 }
 
 
@@ -69,14 +77,13 @@ void Update_Screen()
  * Thus, it must be taken in account accordingly. */
 void screen_draw(void)
 {
+	#ifndef RS90
 	SDL_Rect rct, rct2;
 	uint16_t *src = (uint16_t *) FrameBuffer+8;	// +8 offset , width = 240
 	uint16_t *dst = (uint16_t *) actualScreen->pixels;
 	uint32_t x, y;
 	
-	#ifndef RS90
 	if (HVMode == 0)
-	#endif
 	{
 		switch(menu_oswan.scaling)
 		{
@@ -107,7 +114,6 @@ void screen_draw(void)
 			#endif
 		}
 	}
-	#ifndef RS90
 	// Vertical
 	else
 	{
@@ -142,8 +148,18 @@ void screen_draw(void)
 			break;
 		}
 	}
+	*/
+
+	#else
+	/* RefreshLine sometimes draws outside the border */
+	uint16_t *pp = actualScreen->pixels + (232 + 7 * 240) * sizeof(uint16_t);
+	for (int y = 0 ; y < 145; y++) {
+		for (int c = 0; c < 16; c++) {
+			*(pp++) = 0x0;
+		}
+		pp += 224;
+	}
 	#endif
-	
 	Update_Screen();
 }
 
