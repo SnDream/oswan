@@ -578,7 +578,6 @@ int Handle_Menu(struct menu* m)
 
 	if (!m || m->item_num == 0) return 0;
 
-	m->item_sel = 0;
 	m->menu_done = 0;
 	for (i = 0; i < m->item_num; i++) {
 		m->item_sel = i;
@@ -587,6 +586,7 @@ int Handle_Menu(struct menu* m)
 		if (mi->conf_init_call) mi->conf_init_call(mi);
 	}
 
+	m->item_sel = 0;
 	while (!m->menu_done) {
 		Clear_Menu();
 		if (m->menu_init_call) m->menu_init_call(m);
