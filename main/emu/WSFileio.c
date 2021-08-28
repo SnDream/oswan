@@ -9,6 +9,9 @@
 
 #include "shared.h"
 
+#include <sys/mman.h>
+#include <errno.h>
+
 static unsigned long result;
 static char SaveName[512]; 
 static char StateName[512];
@@ -36,6 +39,7 @@ uint32_t WsCreate(char *CartName)
     int32_t i;
     FILE* fp;
     char buf[16];
+    int32_t fsize;
 
     for (i = 0; i < 256; i++)
     {
@@ -153,26 +157,43 @@ uint32_t WsCreate(char *CartName)
     }
 
     WsRomPatch(buf);
-    
+
+    fseek(fp, 0, SEEK_END);
+    fsize = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    mmapROM = (uint8_t *)mmap(NULL, fsize, PROT_READ | PROT_WRITE, MAP_PRIVATE, fileno(fp), 0);
+    if (mmapROM == MAP_FAILED) {
+        mmapROM = NULL;
+        fprintf(stderr, "ERR_MMAP %d %s\n", fsize + (ROMBanks * -0x10000), strerror(errno));
+    }
+
     Checksum = (uint32_t)((buf[9] << 8) + buf[8]);
     Checksum += (uint32_t)(buf[9] + buf[8]);
     for (i = ROMBanks - 1; i >= 0; i--)
     {
-        fseek(fp, (ROMBanks - i) * -0x10000, 2);
-        if ((ROMMap[0x100 - ROMBanks + i] = (uint8_t*)malloc(0x10000)) != NULL)
-        {
-            if (fread(ROMMap[0x100 - ROMBanks + i], 1, 0x10000, fp) == 0x10000)
+        if (mmapROM != NULL) {
+            ROMMap[0x100 - ROMBanks + i] = &mmapROM[fsize + (ROMBanks - i) * -0x10000];
+            for (j = 0; j < 0x10000; j++)
             {
-                for (j = 0; j < 0x10000; j++)
+                Checksum -= ROMMap[0x100 - ROMBanks + i][j];
+            }
+        } else {
+            fseek(fp, (ROMBanks - i) * -0x10000, 2);
+            if ((ROMMap[0x100 - ROMBanks + i] = (uint8_t*)malloc(0x10000)) != NULL)
+            {
+                if (fread(ROMMap[0x100 - ROMBanks + i], 1, 0x10000, fp) == 0x10000)
                 {
-                    Checksum -= ROMMap[0x100 - ROMBanks + i][j];
+                    for (j = 0; j < 0x10000; j++)
+                    {
+                        Checksum -= ROMMap[0x100 - ROMBanks + i][j];
+                    }
                 }
             }
-        }
-        else
-        {
-			fprintf(stderr,"ERR_MALLOC\n");
-            return 1;
+            else
+            {
+                fprintf(stderr,"ERR_MALLOC\n");
+                return 1;
+            }
         }
     }
     fclose(fp);
@@ -288,8 +309,12 @@ void WsRelease(void)
         {
             break;
         }
-        free(ROMMap[i]);
+        if (mmapROM == NULL) free(ROMMap[i]);
         ROMMap[i] = MemDummy;
+    }
+    if (mmapROM != NULL) {
+        munmap((void *)mmapROM, 0);
+        mmapROM = NULL;
     }
     StateName[0] = '\0';
 }

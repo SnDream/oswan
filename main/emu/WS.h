@@ -14,6 +14,7 @@ extern uint8_t *Page[0x10];
 extern uint8_t IRAM[0x10000];
 extern uint8_t IO[0x100];
 extern uint8_t MemDummy[0x10000];
+extern uint8_t *mmapROM;
 extern uint8_t *ROMMap[0x100];     			/* C-ROMバンクマップ 	*/
 extern uint16_t ROMBanks;            		/* C-ROMバンク数 		*/
 extern uint8_t *RAMMap[0x100];     			/* C-RAMバンクマップ	*/

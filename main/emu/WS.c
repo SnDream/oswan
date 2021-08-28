@@ -19,6 +19,7 @@ uint8_t *Page[16];             	/* バンク割り当て 						*/
 uint8_t IRAM[0x10000];         	/* 内部RAM 64kB = Page[0]			*/
 uint8_t IO[0x100];             	/* IO								*/
 uint8_t MemDummy[0x10000];     	/* ダミーバンク 64kB					*/
+uint8_t *mmapROM;
 uint8_t *ROMMap[0x100];        	/* C-ROMバンクマップ					*/
 uint16_t ROMBanks;    	/* C-ROMバンク数						*/
 uint8_t *RAMMap[0x100];        	/* C-RAMバンクマップ					*/
