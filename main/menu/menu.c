@@ -12,7 +12,9 @@
 static uint32_t done_menu = 0;
 uint32_t profile_config = 0;
 
-struct hardcoded_keys keys_config[2];
+struct hardcoded_keys keys_config[8];
+int remap_state[2];
+uint32_t *menu_key[2][2];
 struct Menu__ menu_oswan;
 
 void print_text_center(const char* text, uint32_t y)
@@ -77,7 +79,7 @@ struct menu Menu_Main = {
 	.menu_y			= 24,
 	.menu_init_call	= Menu_Main_Init,
 	.menu_done_call	= NULL,
-	.item_num		= 6,
+	.item_num		= 8,
 	.item_w			= 240,
 	.item_h			= 16,
 	.item			= Menu_Main_Item,
@@ -103,6 +105,10 @@ const char*	Menu_Scaling_ConfText[];
 
 struct menu	Menu_Input;
 const char*	Menu_Input_ConfText[];
+
+int			Menu_Reset_Sel(struct menu_item* self);
+const char*	Menu_Reset_ConfText[];
+int			Menu_Reset_ConfInit(struct menu_item* self);
 
 int			Menu_Exit_Sel(struct menu_item* self);
 
@@ -156,6 +162,26 @@ struct menu_item Menu_Main_Item[] = {
 		.conf_y			= 0,
 		.conf_text		= Menu_Input_ConfText,
 		.conf_init_call	= NULL,
+		.conf_done_call	= NULL,
+	}, {
+		.name			= "---",
+		.sel_call		= NULL,
+		.sub_menu		= NULL,
+		.conf_num		= 0,
+		.conf_x			= 0,
+		.conf_y			= 0,
+		.conf_text		= NULL,
+		.conf_init_call	= NULL,
+		.conf_done_call	= NULL,
+	}, {
+		.name			= "Reset",
+		.sel_call		= Menu_Reset_Sel,
+		.sub_menu		= NULL,
+		.conf_num		= 2,
+		.conf_x			= 120,
+		.conf_y			= 0,
+		.conf_text		= Menu_Reset_ConfText,
+		.conf_init_call	= Menu_Reset_ConfInit,
 		.conf_done_call	= NULL,
 	}, {
 		.name			= "Exit",
@@ -243,17 +269,17 @@ const char* Menu_Input_ConfText[] = {
 /* Input Options Submenu */
 
 int					Menu_Input_MenuInit(struct menu* self);
-int					Menu_Input_MenuDone(struct menu* self);
 struct menu_item	Menu_Input_Item[];
+const char*			Menu_Input_Button_ConfText[];
 
 struct menu Menu_Input = {
 	.menu_x			= 0,
 	.menu_y			= 0,
 	.menu_init_call	= Menu_Input_MenuInit,
-	.menu_done_call	= Menu_Input_MenuDone,
-	.item_num		= 12,
+	.menu_done_call	= NULL,
+	.item_num		= 14,
 	.item_w			= 264,
-	.item_h			= 12,
+	.item_h			= 10,
 	.item			= Menu_Input_Item,
 	.font_x			= FONT_X_AUTO,
 	.font_y			= FONT_Y_AUTO,
@@ -261,189 +287,94 @@ struct menu Menu_Input = {
 
 int Menu_Input_MenuInit(struct menu* self)
 {
-	return 0;
-}
-int Menu_Input_MenuDone(struct menu* self)
-{
-	return 0;
+	int remap_mode, input_mode;
+
+	update_remap_config();
+
+	remap_mode = self->item[13].conf_sel;
+	switch (remap_mode) {
+	case REMAP_MODE_HOLDXY:
+		print_string("Hold           : Swap X / Y",
+				TextWhite, 0,     0, 142, Surface_to_Draw_menu);
+		print_string(self->item[12].conf_text[self->item[12].conf_sel],
+				TextWhite, 0, 6 * 8, 142, Surface_to_Draw_menu);
+		break;
+	case REMAP_MODE_PRESSXY:
+		print_string("Press          : Swap X / Y",
+				TextWhite, 0,     0, 142, Surface_to_Draw_menu);
+		print_string(self->item[12].conf_text[self->item[12].conf_sel],
+				TextWhite, 0, 6 * 8, 142, Surface_to_Draw_menu);
+		break;
+	case REMAP_MODE_SWAPOPT:
+		print_string("Press          : STA\035OPT\035A\035B",
+				TextWhite, 0,     0, 142, Surface_to_Draw_menu);
+		print_string(self->item[12].conf_text[self->item[12].conf_sel],
+				TextWhite, 0, 6 * 8, 142, Surface_to_Draw_menu);
+		break;
+	}
+
+	input_mode = self->pitem->conf_sel;
+	if (menu_key[input_mode][0] == NULL || menu_key[input_mode][1] == NULL) {
+		print_string("+       : Oswan Menu",
+				TextWhite, 0, 7 * 8, 152, Surface_to_Draw_menu);
+		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(SDLK_ESCAPE)],
+				TextWhite, 0, 0,     152, Surface_to_Draw_menu);
+		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(SDLK_RETURN)],
+				TextWhite, 0, 8 * 8, 152, Surface_to_Draw_menu);
+	} else {
+		print_string("+       : Oswan Menu",
+				TextWhite, 0, 7 * 8, 152, Surface_to_Draw_menu);
+		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(*menu_key[input_mode][0])],
+				TextWhite, 0, 0,     152, Surface_to_Draw_menu);
+		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(*menu_key[input_mode][1])],
+				TextWhite, 0, 8 * 8, 152, Surface_to_Draw_menu);
+	}
 }
 
 int			Menu_Input_Button_Sel(struct menu_item*);
 const char*	Menu_Input_Button_ConfText[];
 int			Menu_Input_Button_ConfInit(struct menu_item*);
 int			Menu_Input_Button_ConfDone(struct menu_item*);
+const char*	Menu_Input_RemapMode_ConfText[];
+int			Menu_Input_RemapMode_ConfInit(struct menu_item*);
+int			Menu_Input_RemapMode_ConfDone(struct menu_item*);
+
+#define MENU_INPUT_ITEM(btn_name) {			\
+	.name			= (btn_name),					\
+	.sel_call		= Menu_Input_Button_Sel,		\
+	.sub_menu		= NULL,							\
+	.conf_num		= 16,							\
+	.conf_x			= 144,							\
+	.conf_y			= 0,							\
+	.conf_text		= Menu_Input_Button_ConfText,	\
+	.conf_init_call	= Menu_Input_Button_ConfInit,	\
+	.conf_done_call	= Menu_Input_Button_ConfDone,	\
+}
 
 struct menu_item Menu_Input_Item[] = {
+	MENU_INPUT_ITEM("Y1 (\030)"),
+	MENU_INPUT_ITEM("Y2 (\032)"),
+	MENU_INPUT_ITEM("Y3 (\031)"),
+	MENU_INPUT_ITEM("Y4 (\033)"),
+	MENU_INPUT_ITEM("X1 (\030)"),
+	MENU_INPUT_ITEM("X2 (\032)"),
+	MENU_INPUT_ITEM("X3 (\031)"),
+	MENU_INPUT_ITEM("X4 (\033)"),
+	MENU_INPUT_ITEM("OPTION"   ),
+	MENU_INPUT_ITEM("START"    ),
+	MENU_INPUT_ITEM("BUTTON A" ),
+	MENU_INPUT_ITEM("BUTTON B" ),
+	MENU_INPUT_ITEM("Remap Switch"),
 	{
-		.name			= "Y1 (UP)",
-		.sel_call		= Menu_Input_Button_Sel,
+		.name			= "Remap Mode",
+		.sel_call		= NULL,
 		.sub_menu		= NULL,
-		.conf_num		= 16,
-		.conf_x			= 160,
+		.conf_num		= 4,
+		.conf_x			= 144,
 		.conf_y			= 0,
-		.conf_text		= Menu_Input_Button_ConfText,
-		.conf_init_call	= Menu_Input_Button_ConfInit,
-		.conf_done_call	= Menu_Input_Button_ConfDone,
-	}, {
-		.name			= "Y2 (RIGHT)",
-		.sel_call		= Menu_Input_Button_Sel,
-		.sub_menu		= NULL,
-		.conf_num		= 16,
-		.conf_x			= 160,
-		.conf_y			= 0,
-		.conf_text		= Menu_Input_Button_ConfText,
-		.conf_init_call	= Menu_Input_Button_ConfInit,
-		.conf_done_call	= Menu_Input_Button_ConfDone,
-	}, {
-		.name			= "Y3 (DOWN)",
-		.sel_call		= Menu_Input_Button_Sel,
-		.sub_menu		= NULL,
-		.conf_num		= 16,
-		.conf_x			= 160,
-		.conf_y			= 0,
-		.conf_text		= Menu_Input_Button_ConfText,
-		.conf_init_call	= Menu_Input_Button_ConfInit,
-		.conf_done_call	= Menu_Input_Button_ConfDone,
-	}, {
-		.name			= "Y4 (LEFT)",
-		.sel_call		= Menu_Input_Button_Sel,
-		.sub_menu		= NULL,
-		.conf_num		= 16,
-		.conf_x			= 160,
-		.conf_y			= 0,
-		.conf_text		= Menu_Input_Button_ConfText,
-		.conf_init_call	= Menu_Input_Button_ConfInit,
-		.conf_done_call	= Menu_Input_Button_ConfDone,
-	}, {
-		.name			= "X1 (UP)",
-		.sel_call		= Menu_Input_Button_Sel,
-		.sub_menu		= NULL,
-		.conf_num		= 16,
-		.conf_x			= 160,
-		.conf_y			= 0,
-		.conf_text		= Menu_Input_Button_ConfText,
-		.conf_init_call	= Menu_Input_Button_ConfInit,
-		.conf_done_call	= Menu_Input_Button_ConfDone,
-	}, {
-		.name			= "X2 (RIGHT)",
-		.sel_call		= Menu_Input_Button_Sel,
-		.sub_menu		= NULL,
-		.conf_num		= 16,
-		.conf_x			= 160,
-		.conf_y			= 0,
-		.conf_text		= Menu_Input_Button_ConfText,
-		.conf_init_call	= Menu_Input_Button_ConfInit,
-		.conf_done_call	= Menu_Input_Button_ConfDone,
-	}, {
-		.name			= "X3 (DOWN)",
-		.sel_call		= Menu_Input_Button_Sel,
-		.sub_menu		= NULL,
-		.conf_num		= 16,
-		.conf_x			= 160,
-		.conf_y			= 0,
-		.conf_text		= Menu_Input_Button_ConfText,
-		.conf_init_call	= Menu_Input_Button_ConfInit,
-		.conf_done_call	= Menu_Input_Button_ConfDone,
-	}, {
-		.name			= "X4 (LEFT)",
-		.sel_call		= Menu_Input_Button_Sel,
-		.sub_menu		= NULL,
-		.conf_num		= 16,
-		.conf_x			= 160,
-		.conf_y			= 0,
-		.conf_text		= Menu_Input_Button_ConfText,
-		.conf_init_call	= Menu_Input_Button_ConfInit,
-		.conf_done_call	= Menu_Input_Button_ConfDone,
-	}, {
-		.name			= "OPTION",
-		.sel_call		= Menu_Input_Button_Sel,
-		.sub_menu		= NULL,
-		.conf_num		= 16,
-		.conf_x			= 160,
-		.conf_y			= 0,
-		.conf_text		= Menu_Input_Button_ConfText,
-		.conf_init_call	= Menu_Input_Button_ConfInit,
-		.conf_done_call	= Menu_Input_Button_ConfDone,
-	}, {
-		.name			= "START",
-		.sel_call		= Menu_Input_Button_Sel,
-		.sub_menu		= NULL,
-		.conf_num		= 16,
-		.conf_x			= 160,
-		.conf_y			= 0,
-		.conf_text		= Menu_Input_Button_ConfText,
-		.conf_init_call	= Menu_Input_Button_ConfInit,
-		.conf_done_call	= Menu_Input_Button_ConfDone,
-	}, {
-		.name			= "A BUTTON",
-		.sel_call		= Menu_Input_Button_Sel,
-		.sub_menu		= NULL,
-		.conf_num		= 16,
-		.conf_x			= 160,
-		.conf_y			= 0,
-		.conf_text		= Menu_Input_Button_ConfText,
-		.conf_init_call	= Menu_Input_Button_ConfInit,
-		.conf_done_call	= Menu_Input_Button_ConfDone,
-	}, {
-		.name			= "B BUTTON",
-		.sel_call		= Menu_Input_Button_Sel,
-		.sub_menu		= NULL,
-		.conf_num		= 16,
-		.conf_x			= 160,
-		.conf_y			= 0,
-		.conf_text		= Menu_Input_Button_ConfText,
-		.conf_init_call	= Menu_Input_Button_ConfInit,
-		.conf_done_call	= Menu_Input_Button_ConfDone,
-	}, {
-		.name			= "Emulator Menu",
-		.sel_call		= Menu_Input_Button_Sel,
-		.sub_menu		= NULL,
-		.conf_num		= 16,
-		.conf_x			= 160,
-		.conf_y			= 0,
-		.conf_text		= Menu_Input_Button_ConfText,
-		.conf_init_call	= Menu_Input_Button_ConfInit,
-		.conf_done_call	= Menu_Input_Button_ConfDone,
-	}, {
-		.name			= "Redirect Func",
-		.sel_call		= Menu_Input_Button_Sel,
-		.sub_menu		= NULL,
-		.conf_num		= 16,
-		.conf_x			= 160,
-		.conf_y			= 0,
-		.conf_text		= Menu_Input_Button_ConfText,
-		.conf_init_call	= Menu_Input_Button_ConfInit,
-		.conf_done_call	= Menu_Input_Button_ConfDone,
-	}, {
-		.name			= "Redirect Act(Rorate)",
-		.sel_call		= Menu_Input_Button_Sel,
-		.sub_menu		= NULL,
-		.conf_num		= 16,
-		.conf_x			= 160,
-		.conf_y			= 0,
-		.conf_text		= Menu_Input_Button_ConfText,
-		.conf_init_call	= Menu_Input_Button_ConfInit,
-		.conf_done_call	= Menu_Input_Button_ConfDone,
-	}, {
-		.name			= "Redirect Mode",
-		.sel_call		= Menu_Input_Button_Sel,
-		.sub_menu		= NULL,
-		.conf_num		= 16,
-		.conf_x			= 160,
-		.conf_y			= 0,
-		.conf_text		= Menu_Input_Button_ConfText,
-		.conf_init_call	= Menu_Input_Button_ConfInit,
-		.conf_done_call	= Menu_Input_Button_ConfDone,
-	}, {
-		.name			= "Redirect Pair",
-		.sel_call		= Menu_Input_Button_Sel,
-		.sub_menu		= NULL,
-		.conf_num		= 16,
-		.conf_x			= 160,
-		.conf_y			= 0,
-		.conf_text		= Menu_Input_Button_ConfText,
-		.conf_init_call	= Menu_Input_Button_ConfInit,
-		.conf_done_call	= Menu_Input_Button_ConfDone,
+		.conf_text		= Menu_Input_RemapMode_ConfText,
+		.conf_init_call	= Menu_Input_RemapMode_ConfInit,
+		.conf_done_call	= Menu_Input_RemapMode_ConfDone,
 	}
 };
 
@@ -474,6 +405,14 @@ int Menu_Input_Button_Sel(struct menu_item* self)
 	}
 	return 0;
 }
+const char*	Menu_Input_Button_ConfText[] = {
+	"None",
+	"Dpad\030",	"Dpad\031",	"Dpad\033",	"Dpad\032",
+	"(A)",	"(B)",	"(X)",	"(Y)",
+	"(L)",	"(R)",	"(L2)",	"(R2)",
+	"Start",	"Select",
+	"Unknown",
+};
 int Menu_Input_Button_ConfInit(struct menu_item* self)
 {
 	int type, item_sel;
@@ -488,6 +427,7 @@ int Menu_Input_Button_ConfInit(struct menu_item* self)
 	self->conf_sel = SDLK2InputSel(key);
 	return 0;
 }
+
 int Menu_Input_Button_ConfDone(struct menu_item* self)
 {
 	int type, item_sel;
@@ -502,25 +442,57 @@ int Menu_Input_Button_ConfDone(struct menu_item* self)
 	keys_config[type].buttons[item_sel] = key;
 	return 0;
 }
-
-const char*	Menu_Input_Button_ConfText[] = {
+const char*	Menu_Input_RemapMode_ConfText[] = {
 	"None",
-	"D-UP",
-	"D-DOWN",
-	"D-LEFT",
-	"D-RIGHT",
-	"A",
-	"B",
-	"X",
-	"Y",
-	"L",
-	"R",
-	"L2",
-	"R2",
-	"Start",
-	"Select",
-	"Unknown",
+	"Hold X\035Y",
+	"Press X\035Y",
+	"Swap START",
 };
+
+int Menu_Input_RemapMode_ConfInit(struct menu_item* self)
+{
+	int type, item_sel;
+	SDLKey key;
+
+	type = self->pmenu->pitem->conf_sel;
+	item_sel = self->pmenu->item_sel;
+	if (type != 0 && type != 1) return 0;
+	if (item_sel < 0 || item_sel >= self->pmenu->item_num) return 0;
+
+	key = keys_config[type].buttons[item_sel];
+	self->conf_sel = key;
+	return 0;
+}
+
+int Menu_Input_RemapMode_ConfDone(struct menu_item* self)
+{
+	int type, item_sel;
+	SDLKey key;
+
+	type = self->pmenu->pitem->conf_sel;
+	item_sel = self->pmenu->item_sel;
+	if (type != 0 && type != 1) return 0;
+	if (item_sel < 0 || item_sel >= self->pmenu->item_num) return 0;
+
+	keys_config[type].buttons[item_sel] = self->conf_sel;
+	return 0;
+}
+
+/* Reset */
+
+int Menu_Reset_Sel(struct menu_item* self)
+{
+	if (self->conf_sel != 1) return 0;
+	WsReset();
+	self->pmenu->menu_done = 1;
+}
+const char* Menu_Reset_ConfText[] = {
+	"No", "Yes",
+};
+int Menu_Reset_ConfInit(struct menu_item* self)
+{
+	self->conf_sel = 0;
+}
 
 /* Exit */
 
@@ -674,7 +646,7 @@ void load_config(void)
 	else
 	{
 		/* Set default settings */
-		for (i=0;i<2;i++)
+		for (i=0;i<8;i++)
 		{
 			for (a=0;a<12;a++)
 			{
@@ -684,42 +656,48 @@ void load_config(void)
 		
 		/* Default profile */
 		/* Should work for landscape. They can always configure it themselves should they need portrait mode. */
-		keys_config[0].buttons[0] = 0;
-		keys_config[0].buttons[1] = 0;
-		keys_config[0].buttons[2] = 0;
-		keys_config[0].buttons[3] = 0;
-		keys_config[0].buttons[4] = 273;
-		keys_config[0].buttons[5] = 275;
-		keys_config[0].buttons[6] = 274;
-		keys_config[0].buttons[7] = 276;
-		keys_config[0].buttons[8] = 27;
-		keys_config[0].buttons[9] = 13;
-		keys_config[0].buttons[10] = 306;
-		keys_config[0].buttons[11] = 308;
+		keys_config[0].buttons[0] = SDLK_UNKNOWN;
+		keys_config[0].buttons[1] = SDLK_UNKNOWN;
+		keys_config[0].buttons[2] = SDLK_UNKNOWN;
+		keys_config[0].buttons[3] = SDLK_UNKNOWN;
+		keys_config[0].buttons[4] = SDLK_UP;
+		keys_config[0].buttons[5] = SDLK_RIGHT;
+		keys_config[0].buttons[6] = SDLK_DOWN;
+		keys_config[0].buttons[7] = SDLK_LEFT;
+		keys_config[0].buttons[8] = SDLK_ESCAPE;
+		keys_config[0].buttons[9] = SDLK_RETURN;
+		keys_config[0].buttons[10] = SDLK_LCTRL;
+		keys_config[0].buttons[11] = SDLK_LALT;
 		
 #ifndef RS90
-		keys_config[1].buttons[0] = 276;
-		keys_config[1].buttons[1] = 273;
-		keys_config[1].buttons[2] = 275;
-		keys_config[1].buttons[3] = 274;
+		keys_config[1].buttons[0] = SDLK_LEFT;
+		keys_config[1].buttons[1] = SDLK_UP;
+		keys_config[1].buttons[2] = SDLK_RIGHT;
+		keys_config[1].buttons[3] = SDLK_DOWN;
 #else
-		keys_config[1].buttons[0] = 273;
-		keys_config[1].buttons[1] = 275;
-		keys_config[1].buttons[2] = 274;
-		keys_config[1].buttons[3] = 276;
+		keys_config[1].buttons[0] = SDLK_UP;
+		keys_config[1].buttons[1] = SDLK_RIGHT;
+		keys_config[1].buttons[2] = SDLK_DOWN;
+		keys_config[1].buttons[3] = SDLK_LEFT;
 #endif
 		
-		keys_config[1].buttons[4] = 306;
-		keys_config[1].buttons[5] = 308;
-		keys_config[1].buttons[6] = 304;
-		keys_config[1].buttons[7] = 32;
+		keys_config[1].buttons[4] = SDLK_LCTRL;
+		keys_config[1].buttons[5] = SDLK_LALT;
+#ifndef RS90
+		keys_config[1].buttons[6] = SDLK_LSHIFT;
+		keys_config[1].buttons[7] = SDLK_SPACE;
+#else
+		keys_config[1].buttons[6] = SDLK_TAB;
+		keys_config[1].buttons[7] = SDLK_BACKSPACE;
+#endif
 		
-		keys_config[1].buttons[8] = 27;
-		keys_config[1].buttons[9] = 13;
+		keys_config[1].buttons[8] = SDLK_ESCAPE;
+		keys_config[1].buttons[9] = SDLK_RETURN;
 				
-		keys_config[1].buttons[10] = 0;
-		keys_config[1].buttons[11] = 0;
+		keys_config[1].buttons[10] = SDLK_UNKNOWN;
+		keys_config[1].buttons[11] = SDLK_UNKNOWN;
 	}
+	update_remap_config();
 }
 
 
@@ -727,7 +705,7 @@ void save_config(void)
 {
 	char home_path[PATH_MAX], cfg_path[PATH_MAX];
 	FILE* fp;
-	
+
 	snprintf(home_path, sizeof(home_path), "%s%s", PATH_DIRECTORY, SAVE_DIRECTORY);
 	snprintf(cfg_path, sizeof(cfg_path), "%sconfig.bin", home_path);
 	
@@ -742,6 +720,99 @@ void save_config(void)
 		fwrite(&menu_oswan, sizeof(uint8_t), sizeof(menu_oswan), fp);
 		fwrite(&keys_config, sizeof(uint8_t), (14*2)*sizeof(uint32_t), fp);
 		fclose(fp);
+	}
+}
+
+void update_remap_config()
+{
+	int i, a;
+	uint32_t key;
+	
+	for (i = 0; i < 2; i++) {
+		/* add remap configs */
+		for (a = 0; a < 12; a++) {
+			key = keys_config[i].buttons[a];
+			switch(keys_config[i].buttons[13]) {
+			default:
+			case REMAP_MODE_NONE:
+				break;
+			case REMAP_MODE_HOLDXY:
+			case REMAP_MODE_PRESSXY:
+				switch(a) {
+				case 0:
+				case 1:
+				case 2:
+				case 3:
+					keys_config[i + 2].buttons[a + 4] = key;
+					break;
+				case 4:
+				case 5:
+				case 6:
+				case 7:
+					keys_config[i + 2].buttons[a - 4] = key;
+					break;
+				default:
+					keys_config[i + 2].buttons[a] = key;
+				}
+				break;
+			case REMAP_MODE_SWAPOPT:
+				switch(a) {
+				case 8: 
+					keys_config[i + 2].buttons[9] = key;
+					keys_config[i + 4].buttons[8] = key;
+					keys_config[i + 6].buttons[8] = key;
+					break;
+				case 9: 
+					keys_config[i + 2].buttons[8] = key;
+					keys_config[i + 4].buttons[10] = key;
+					keys_config[i + 6].buttons[11] = key;
+					break;
+				case 10: 
+					keys_config[i + 2].buttons[10] = key;
+					keys_config[i + 4].buttons[9] = key;
+					keys_config[i + 6].buttons[10] = key;
+					break;
+				case 11: 
+					keys_config[i + 2].buttons[11] = key;
+					keys_config[i + 4].buttons[11] = key;
+					keys_config[i + 6].buttons[9] = key;
+					break;
+				default: 
+					keys_config[i + 2].buttons[a] = key;
+					keys_config[i + 4].buttons[a] = key;
+					keys_config[i + 6].buttons[a] = key;
+				}
+			}
+		}
+
+		/* reset remap state */
+		remap_state[i] = 0;
+
+		/* emu menu */
+		switch(keys_config[i].buttons[12]) {
+		default:
+			menu_key[i][0] = NULL;
+			menu_key[i][1] = NULL;
+			break;
+#ifndef RS90
+		case SDLK_LSHIFT:
+		case SDLK_SPACE:
+		case SDLK_PAGEUP:
+		case SDLK_PAGEDOWN:
+#endif
+		case SDLK_UP:
+		case SDLK_DOWN:
+		case SDLK_LEFT:
+		case SDLK_RIGHT:
+		case SDLK_LCTRL:
+		case SDLK_LALT:
+		case SDLK_TAB:
+		case SDLK_BACKSPACE:
+		case SDLK_RETURN:
+		case SDLK_ESCAPE:
+			menu_key[i][0] = &keys_config[i].buttons[12];
+			menu_key[i][1] = &keys_config[i].buttons[9];
+		}
 	}
 }
 

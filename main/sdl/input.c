@@ -21,9 +21,21 @@ static uint8_t *keys;
 
 void exit_button(void)
 {
+	uint32_t rotate_input = 0;
+	uint32_t key1, key2;
 	keys = SDL_GetKeyState(NULL);
+	if (HVMode != 0) rotate_input = 1;
+
+	if (menu_key[rotate_input][0] == NULL || menu_key[rotate_input][1] == NULL) {
+		key1 = SDLK_ESCAPE;
+		key2 = SDLK_RETURN;
+	} else {
+		key1 = *menu_key[rotate_input][0];
+		key2 = *menu_key[rotate_input][1];
+	}
+
 	/* Get to Menu hotkey */
-	if ( ((keys[SDLK_ESCAPE] == SDL_PRESSED) && (keys[SDLK_RETURN] == SDL_PRESSED)) 
+	if ( ((keys[key1] == SDL_PRESSED) && (keys[key2] == SDL_PRESSED)) 
 	#ifdef RG99
 	|| keys[SDLK_PAGEUP] == SDL_PRESSED
 	#endif
@@ -36,83 +48,114 @@ void exit_button(void)
 
 uint32_t WsInputGetState()
 {
+	static uint8_t kdown = 0, kpress = 0;
 	uint32_t rotate_input = 0;
 	SDL_Event event;
-	int32_t button = 0;
+	static int32_t button = 0;
+	struct hardcoded_keys *key_conf;
 	
 	if (HVMode != 0) rotate_input = 1;
 	
 	SDL_PollEvent(&event);
 	keys = SDL_GetKeyState(NULL);
+
+	key_conf = &keys_config[rotate_input];
+	kpress = keys[ key_conf->buttons[12] ];
+	kdown ^= kpress;
+	switch (key_conf->buttons[13]) {
+	case REMAP_MODE_HOLDXY:
+		if (!kpress) { button = 0; break; }
+		button &= (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7);
+		key_conf += 2;
+		break;
+	case REMAP_MODE_PRESSXY:
+		button = 0;
+		key_conf += remap_state[rotate_input];
+		if (!kpress || !kdown) break;
+		remap_state[rotate_input] += 2;
+		remap_state[rotate_input] &= 3;
+		break;
+	case REMAP_MODE_SWAPOPT:
+		button = 0;
+		key_conf += remap_state[rotate_input];
+		if (!kpress || !kdown) break;
+		remap_state[rotate_input] += 2;
+		remap_state[rotate_input] &= 7;
+		break;
+	default:
+	case REMAP_MODE_NONE:
+		button = 0;
+	}
+	kdown = kpress;
 	
 	// UP -> Y1
-	if (keys[ keys_config[rotate_input].buttons[0] ] == SDL_PRESSED)
+	if (keys[ key_conf->buttons[0] ] == SDL_PRESSED)
 	{
 		button |= (1<<0);
 	}
 	
 	// RIGHT -> Y2
-	if (keys[ keys_config[rotate_input].buttons[1] ] == SDL_PRESSED)
+	if (keys[ key_conf->buttons[1] ] == SDL_PRESSED)
 	{
 		button |= (1<<1);
 	}
 	
 	// DOWN -> Y3
-	if (keys[ keys_config[rotate_input].buttons[2] ] == SDL_PRESSED)
+	if (keys[ key_conf->buttons[2] ] == SDL_PRESSED)
 	{
 		button |= (1<<2);
 	}
 	
 	// LEFT -> Y4
-	if (keys[ keys_config[rotate_input].buttons[3] ] == SDL_PRESSED)
+	if (keys[ key_conf->buttons[3] ] == SDL_PRESSED)
 	{
 		button |= (1<<3);
 	}
 	
 	// UP -> X1
-	if (keys[ keys_config[rotate_input].buttons[4] ] == SDL_PRESSED)
+	if (keys[ key_conf->buttons[4] ] == SDL_PRESSED)
 	{
 		button |= (1<<4);
 	}
 	
 	// RIGHT -> X2
-	if (keys[ keys_config[rotate_input].buttons[5] ] == SDL_PRESSED)
+	if (keys[ key_conf->buttons[5] ] == SDL_PRESSED)
 	{
 		button |= (1<<5);
 	}
 	
 	// DOWN -> X3
-	if (keys[ keys_config[rotate_input].buttons[6] ] == SDL_PRESSED)
+	if (keys[ key_conf->buttons[6] ] == SDL_PRESSED)
 	{
 		button |= (1<<6);
 	}
 	
 	// LEFT -> X4
-	if (keys[ keys_config[rotate_input].buttons[7] ] == SDL_PRESSED)
+	if (keys[ key_conf->buttons[7] ] == SDL_PRESSED)
 	{
 		button |= (1<<7);
 	}
 
 	// SELECT/OTHER -> OPTION (Wonderswan button)
-	if (keys[ keys_config[rotate_input].buttons[8] ] == SDL_PRESSED)
+	if (keys[ key_conf->buttons[8] ] == SDL_PRESSED)
 	{
 		button |= (1<<8);
 	}
 
 	// START -> START (Wonderswan button)
-	if (keys[ keys_config[rotate_input].buttons[9] ] == SDL_PRESSED)
+	if (keys[ key_conf->buttons[9] ] == SDL_PRESSED)
 	{
 		button |= (1<<9);
 	}
 	
 	// A -> A (Wonderswan button)
-	if (keys[ keys_config[rotate_input].buttons[10] ] == SDL_PRESSED)
+	if (keys[ key_conf->buttons[10] ] == SDL_PRESSED)
 	{
 		button |= (1<<10);
 	}
 	
 	// B -> B (Wonderswan button)
-	if (keys[ keys_config[rotate_input].buttons[11] ] == SDL_PRESSED)
+	if (keys[ key_conf->buttons[11] ] == SDL_PRESSED)
 	{
 		button |= (1<<11);
 	}

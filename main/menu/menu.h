@@ -62,6 +62,10 @@ struct menu_item {
 	int						conf_sel;
 };
 
+#define REMAP_MODE_NONE		0
+#define REMAP_MODE_HOLDXY	1
+#define REMAP_MODE_PRESSXY	2
+#define REMAP_MODE_SWAPOPT	3
 
 struct hardcoded_keys
 {
@@ -69,11 +73,14 @@ struct hardcoded_keys
 };
 
 extern uint32_t profile_config;
-extern struct hardcoded_keys keys_config[2];
+extern struct hardcoded_keys keys_config[8];
+extern int remap_state[2];
+extern uint32_t *menu_key[2][2];
 extern struct Menu__ menu_oswan;
 
 extern void Menu(void);
 extern void load_config(void);
 extern void save_config(void);
+extern void update_remap_config();
 
 #endif
