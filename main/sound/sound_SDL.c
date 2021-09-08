@@ -15,6 +15,8 @@ static void SDL_callback(void *userdata, uint8_t *stream, int32_t len)
 {
 	int32_t i;
 	uint16_t *buffer = (uint16_t *) stream;
+	int rate, repeat;
+	uint16_t LL, RR;
 	
 	len /= 2;
 	
@@ -25,7 +27,8 @@ static void SDL_callback(void *userdata, uint8_t *stream, int32_t len)
 
 	// SDL_LockMutex(sound_mutex);
 
-	if (apuBufLen() * sizeof(uint16_t) >= len) {
+	rate = len / (apuBufLen() + 1);
+	if (rate == 0) {
 		if (rBuf + len <= SND_RNGSIZE) {
 			memcpy(buffer, sndbuffer + rBuf, len * sizeof(uint16_t));
 			rBuf += len;
@@ -34,6 +37,19 @@ static void SDL_callback(void *userdata, uint8_t *stream, int32_t len)
 			memcpy(buffer, sndbuffer + rBuf, i * sizeof(uint16_t));
 			memcpy(buffer + i, sndbuffer, (len - i) * sizeof(uint16_t));
 			rBuf = len - i;
+		}
+	} else {
+		rate *= 2;
+		len /= 2;
+		for (i = 0, repeat = 0; i < len ; i++) {
+			if (repeat-- == 0) {
+				LL = sndbuffer[rBuf++];
+				RR = sndbuffer[rBuf++];
+				rBuf &= SND_RNGSIZE - 1;
+				repeat = rate;
+			}
+			*(buffer++) = LL;
+			*(buffer++) = RR;
 		}
 	}
 

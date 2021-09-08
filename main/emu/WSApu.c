@@ -25,6 +25,10 @@ static uint16_t RandData[BUFSIZEN];
 extern uint8_t *Page[16];
 extern uint8_t IO[0x100];
 
+#ifdef FRAMESKIP
+extern int32_t FrameSkip;
+#endif
+
 int32_t apuBufLen(void)
 {
 	if (wBuf >= rBuf) return wBuf - rBuf;
@@ -307,24 +311,9 @@ void apuWaveSet(void)
     RR = (rVol[0] + rVol[1] + rVol[2] + rVol[3] + vVol) * WAV_VOLUME;
 
 	#ifdef NATIVE_AUDIO
-    if (buf_len < SND_BNKSIZE * 4) {
-        sndbuffer[wBuf++] = LL;
-        sndbuffer[wBuf++] = RR;
-        wBuf &= SND_RNGSIZE - 1;
-        sndbuffer[wBuf++] = LL;
-        sndbuffer[wBuf++] = RR;
-        wBuf &= SND_RNGSIZE - 1;
-        sndbuffer[wBuf++] = LL;
-        sndbuffer[wBuf++] = RR;
-        wBuf &= SND_RNGSIZE - 1;
-        sndbuffer[wBuf++] = LL;
-        sndbuffer[wBuf++] = RR;
-        wBuf &= SND_RNGSIZE - 1;
-    } else {
-        sndbuffer[wBuf++] = LL;
-        sndbuffer[wBuf++] = RR;
-        wBuf &= SND_RNGSIZE - 1;
-    }
+    sndbuffer[wBuf++] = LL;
+    sndbuffer[wBuf++] = RR;
+    wBuf &= SND_RNGSIZE - 1;
 	#else
 	if (convert_multiplier == MULT) 
 	{

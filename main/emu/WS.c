@@ -12,6 +12,8 @@
 #include "WSFileio.h"
 #include "cpu/necintrf.h"
 
+#include "menu.h"
+
 #define IPeriod 32          	/* HBlank/8 (256/8)					*/
 
 /*uint32_t Run;*/
@@ -167,7 +169,7 @@ static void WriteIRam(const uint32_t A, uint8_t V)
         SetPalette(A);
     }
 #ifdef SOUND_EMULATION
-    if(!((A - WaveMap) & 0xFFC0))
+    if(sound_on && !((A - WaveMap) & 0xFFC0))
     {
         apuSetPData(A & 0x003F, V);
     }
@@ -383,56 +385,69 @@ void WriteIO(uint32_t A, uint8_t V)
 #ifdef SOUND_EMULATION
     case 0x80:
     case 0x81:
+        if(!sound_on) break;
         IO[A] = V;
         Ch[0].freq = *(uint16_t*)(IO + SND1FRQ);
         return;
     case 0x82:
     case 0x83:
+        if(!sound_on) break;
         IO[A] = V;
         Ch[1].freq = *(uint16_t*)(IO + SND2FRQ);
         return;
     case 0x84:
     case 0x85:
+        if(!sound_on) break;
         IO[A] = V;
         Ch[2].freq = *(uint16_t*)(IO + SND3FRQ);
         return;
     case 0x86:
     case 0x87:
+        if(!sound_on) break;
         IO[A] = V;
         Ch[3].freq = *(uint16_t*)(IO + SND4FRQ);
         return;
     case 0x88:
+        if(!sound_on) break;
         Ch[0].volL = (V >> 4) & 0x0F;
         Ch[0].volR = V & 0x0F;
         break;
     case 0x89:
+        if(!sound_on) break;
         Ch[1].volL = (V >> 4) & 0x0F;
         Ch[1].volR = V & 0x0F;
         break;
     case 0x8A:
+        if(!sound_on) break;
         Ch[2].volL = (V >> 4) & 0x0F;
         Ch[2].volR = V & 0x0F;
         break;
     case 0x8B:
+        if(!sound_on) break;
         Ch[3].volL = (V >> 4) & 0x0F;
         Ch[3].volR = V & 0x0F;
         break;
     case 0x8C:
+        if(!sound_on) break;
         Swp.step = (signed char)V;
         break;
     case 0x8D:
+        if(!sound_on) break;
         Swp.time = (V + 1) << 5;
         break;
     case 0x8E:
+        if(!sound_on) break;
         Noise.pattern = V & 0x07;
         break;
     case 0x8F:
+        if(!sound_on) break;
         WaveMap = V << 6;
         for (i = 0; i < 64; i++) {
             apuSetPData(WaveMap + i, IRAM[WaveMap + i]);
         }
         break;
     case 0x90:
+        if(!sound_on) break;
         Ch[0].on = V & 0x01;
         Ch[1].on = V & 0x02;
         Ch[2].on = V & 0x04;
@@ -807,6 +822,7 @@ int32_t Interrupt(void)
             break;
 #ifdef SOUND_ON
         case 2:
+            if(!sound_on) break;
             /* Hblank毎に1サンプルセットすることで12KHzのwaveデータが出来る */
             apuWaveSet();
 			*(uint16_t*)(IO + NCSR) = apuShiftReg();

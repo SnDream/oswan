@@ -48,10 +48,11 @@ void exit_button(void)
 
 uint32_t WsInputGetState()
 {
-	static uint8_t kdown = 0, kpress = 0;
+	static uint8_t kupdate = 0, kpress = 0;
 	uint32_t rotate_input = 0;
 	SDL_Event event;
 	static int32_t button = 0;
+	static int32_t button_hold = 0;
 	struct hardcoded_keys *key_conf;
 	
 	if (HVMode != 0) rotate_input = 1;
@@ -61,24 +62,37 @@ uint32_t WsInputGetState()
 
 	key_conf = &keys_config[rotate_input];
 	kpress = keys[ key_conf->buttons[12] ];
-	kdown ^= kpress;
+	kupdate ^= kpress;
 	switch (key_conf->buttons[13]) {
-	case REMAP_MODE_HOLDXY:
-		if (!kpress) { button = 0; break; }
-		button &= (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7);
-		key_conf += 2;
+	case REMAP_MODE_HOLDY2X:
+		if (kpress) {
+			button = 0;
+			key_conf += 2;
+			break;
+		}
+		if (kupdate) button_hold = button & ((1 << 4) | (1 << 5) | (1 << 6) | (1 << 7));
+		button = button_hold;
+		break;
+	case REMAP_MODE_HOLDX2Y:
+		if (kpress) {
+			button = 0;
+			key_conf += 2;
+			break;
+		}
+		if (kupdate) button_hold = button & ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3));
+		button = button_hold;
 		break;
 	case REMAP_MODE_PRESSXY:
 		button = 0;
 		key_conf += remap_state[rotate_input];
-		if (!kpress || !kdown) break;
+		if (!kpress || !kupdate) break;
 		remap_state[rotate_input] += 2;
 		remap_state[rotate_input] &= 3;
 		break;
 	case REMAP_MODE_SWAPOPT:
 		button = 0;
 		key_conf += remap_state[rotate_input];
-		if (!kpress || !kdown) break;
+		if (!kpress || !kupdate) break;
 		remap_state[rotate_input] += 2;
 		remap_state[rotate_input] &= 7;
 		break;
@@ -86,7 +100,7 @@ uint32_t WsInputGetState()
 	case REMAP_MODE_NONE:
 		button = 0;
 	}
-	kdown = kpress;
+	kupdate = kpress;
 	
 	// UP -> Y1
 	if (keys[ key_conf->buttons[0] ] == SDL_PRESSED)

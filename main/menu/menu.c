@@ -16,6 +16,7 @@ struct hardcoded_keys keys_config[8];
 int remap_state[2];
 uint32_t *menu_key[2][2];
 struct Menu__ menu_oswan;
+int sound_on = 0;
 
 void print_text_center(const char* text, uint32_t y)
 {
@@ -96,15 +97,20 @@ int			Menu_Continue_Sel(struct menu_item* self);
 
 int			Menu_Load_State_Sel(struct menu_item* self);
 int			Menu_Save_State_Sel(struct menu_item* self);
-int			Menu_State_ConfDone(struct menu_item* self);
 const char*	Menu_State_ConfText[];
+int			Menu_State_ConfDone(struct menu_item* self);
 
+const char*	Menu_Scaling_ConfText[];
 int			Menu_Scaling_ConfInit(struct menu_item* self);
 int			Menu_Scaling_ConfDone(struct menu_item* self);
-const char*	Menu_Scaling_ConfText[];
 
 struct menu	Menu_Input;
 const char*	Menu_Input_ConfText[];
+int			Menu_Input_ConfInit(struct menu_item* self);
+
+const char*	Menu_Sound_ConfText[];
+int			Menu_Sound_ConfInit(struct menu_item* self);
+int			Menu_Sound_ConfDone(struct menu_item* self);
 
 int			Menu_Reset_Sel(struct menu_item* self);
 const char*	Menu_Reset_ConfText[];
@@ -161,18 +167,18 @@ struct menu_item Menu_Main_Item[] = {
 		.conf_x			= 120,
 		.conf_y			= 0,
 		.conf_text		= Menu_Input_ConfText,
-		.conf_init_call	= NULL,
+		.conf_init_call	= Menu_Input_ConfInit,
 		.conf_done_call	= NULL,
 	}, {
-		.name			= "---",
+		.name			= "Sound",
 		.sel_call		= NULL,
 		.sub_menu		= NULL,
-		.conf_num		= 0,
-		.conf_x			= 0,
+		.conf_num		= 2,
+		.conf_x			= 120,
 		.conf_y			= 0,
-		.conf_text		= NULL,
-		.conf_init_call	= NULL,
-		.conf_done_call	= NULL,
+		.conf_text		= Menu_Sound_ConfText,
+		.conf_init_call	= Menu_Sound_ConfInit,
+		.conf_done_call	= Menu_Sound_ConfDone,
 	}, {
 		.name			= "Reset",
 		.sel_call		= Menu_Reset_Sel,
@@ -217,6 +223,10 @@ int Menu_Save_State_Sel(struct menu_item* self)
 	WsSaveState(gameName, self->conf_sel);
 	self->pmenu->menu_done = 1;
 }
+const char* Menu_State_ConfText[] = {
+	"0", "1", "2", "3", "4",
+	"5", "6", "7", "8", "9",
+};
 int Menu_State_ConfDone(struct menu_item* self)
 {
 	int i;
@@ -229,24 +239,9 @@ int Menu_State_ConfDone(struct menu_item* self)
 	}
 	return 0;
 }
-const char* Menu_State_ConfText[] = {
-	"0", "1", "2", "3", "4",
-	"5", "6", "7", "8", "9",
-};
 
 /* Scaling */
 
-int Menu_Scaling_ConfInit(struct menu_item* self)
-{
-	if (menu_oswan.scaling < 0 || menu_oswan.scaling > self->conf_num) {
-		menu_oswan.scaling = 0;
-	}
-	self->conf_sel = menu_oswan.scaling;
-}
-int Menu_Scaling_ConfDone(struct menu_item* self)
-{
-	menu_oswan.scaling = self->conf_sel;
-}
 const char* Menu_Scaling_ConfText[] = {
 #ifndef RS90
 	"Native",
@@ -258,6 +253,17 @@ const char* Menu_Scaling_ConfText[] = {
 	"Always Native",
 #endif
 };
+int Menu_Scaling_ConfInit(struct menu_item* self)
+{
+	if (menu_oswan.scaling < 0 || menu_oswan.scaling > self->conf_num) {
+		menu_oswan.scaling = 0;
+	}
+	self->conf_sel = menu_oswan.scaling;
+}
+int Menu_Scaling_ConfDone(struct menu_item* self)
+{
+	menu_oswan.scaling = self->conf_sel;
+}
 
 /* Input Options */
 
@@ -265,6 +271,10 @@ const char* Menu_Input_ConfText[] = {
 	"Horizontal",
 	"Vertical",
 };
+int Menu_Input_ConfInit(struct menu_item* self)
+{
+	self->conf_sel = (HVMode == 0) ? 0 : 1;
+}
 
 /* Input Options Submenu */
 
@@ -293,20 +303,26 @@ int Menu_Input_MenuInit(struct menu* self)
 
 	remap_mode = self->item[13].conf_sel;
 	switch (remap_mode) {
-	case REMAP_MODE_HOLDXY:
-		print_string("Hold           : Swap X / Y",
+	case REMAP_MODE_HOLDY2X:
+		print_string("Hold         : Overlap Y to X",
+				TextWhite, 0,     0, 142, Surface_to_Draw_menu);
+		print_string(self->item[12].conf_text[self->item[12].conf_sel],
+				TextWhite, 0, 6 * 8, 142, Surface_to_Draw_menu);
+		break;
+	case REMAP_MODE_HOLDX2Y:
+		print_string("Hold         : Overlap X to Y",
 				TextWhite, 0,     0, 142, Surface_to_Draw_menu);
 		print_string(self->item[12].conf_text[self->item[12].conf_sel],
 				TextWhite, 0, 6 * 8, 142, Surface_to_Draw_menu);
 		break;
 	case REMAP_MODE_PRESSXY:
-		print_string("Press          : Swap X / Y",
+		print_string("Press        : Swap X and Y",
 				TextWhite, 0,     0, 142, Surface_to_Draw_menu);
 		print_string(self->item[12].conf_text[self->item[12].conf_sel],
 				TextWhite, 0, 6 * 8, 142, Surface_to_Draw_menu);
 		break;
 	case REMAP_MODE_SWAPOPT:
-		print_string("Press          : STA\035OPT\035A\035B",
+		print_string("Press        : START\035OPTN\035A\035B",
 				TextWhite, 0,     0, 142, Surface_to_Draw_menu);
 		print_string(self->item[12].conf_text[self->item[12].conf_sel],
 				TextWhite, 0, 6 * 8, 142, Surface_to_Draw_menu);
@@ -315,19 +331,19 @@ int Menu_Input_MenuInit(struct menu* self)
 
 	input_mode = self->pitem->conf_sel;
 	if (menu_key[input_mode][0] == NULL || menu_key[input_mode][1] == NULL) {
-		print_string("+       : Oswan Menu",
-				TextWhite, 0, 7 * 8, 152, Surface_to_Draw_menu);
+		print_string("+      : Oswan Emu Menu",
+				TextWhite, 0, 6 * 8, 152, Surface_to_Draw_menu);
 		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(SDLK_ESCAPE)],
 				TextWhite, 0, 0,     152, Surface_to_Draw_menu);
 		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(SDLK_RETURN)],
-				TextWhite, 0, 8 * 8, 152, Surface_to_Draw_menu);
-	} else {
-		print_string("+       : Oswan Menu",
 				TextWhite, 0, 7 * 8, 152, Surface_to_Draw_menu);
+	} else {
+		print_string("+      : Oswan Emu Menu",
+				TextWhite, 0, 6 * 8, 152, Surface_to_Draw_menu);
 		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(*menu_key[input_mode][0])],
 				TextWhite, 0, 0,     152, Surface_to_Draw_menu);
 		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(*menu_key[input_mode][1])],
-				TextWhite, 0, 8 * 8, 152, Surface_to_Draw_menu);
+				TextWhite, 0, 7 * 8, 152, Surface_to_Draw_menu);
 	}
 }
 
@@ -369,7 +385,7 @@ struct menu_item Menu_Input_Item[] = {
 		.name			= "Remap Mode",
 		.sel_call		= NULL,
 		.sub_menu		= NULL,
-		.conf_num		= 4,
+		.conf_num		= 5,
 		.conf_x			= 144,
 		.conf_y			= 0,
 		.conf_text		= Menu_Input_RemapMode_ConfText,
@@ -411,7 +427,7 @@ const char*	Menu_Input_Button_ConfText[] = {
 	"(A)",	"(B)",	"(X)",	"(Y)",
 	"(L)",	"(R)",	"(L2)",	"(R2)",
 	"Start",	"Select",
-	"Unknown",
+	"?",
 };
 int Menu_Input_Button_ConfInit(struct menu_item* self)
 {
@@ -442,13 +458,14 @@ int Menu_Input_Button_ConfDone(struct menu_item* self)
 	keys_config[type].buttons[item_sel] = key;
 	return 0;
 }
+
 const char*	Menu_Input_RemapMode_ConfText[] = {
 	"None",
-	"Hold X\035Y",
+	"Hold Y\032X",
+	"Hold X\032Y",
 	"Press X\035Y",
 	"Swap START",
 };
-
 int Menu_Input_RemapMode_ConfInit(struct menu_item* self)
 {
 	int type, item_sel;
@@ -478,6 +495,20 @@ int Menu_Input_RemapMode_ConfDone(struct menu_item* self)
 	return 0;
 }
 
+/* Sound */
+
+const char* Menu_Sound_ConfText[] = {
+	"OFF", "ON",
+};
+int Menu_Sound_ConfInit(struct menu_item* self)
+{
+	self->conf_sel = sound_on;
+}
+int Menu_Sound_ConfDone(struct menu_item* self)
+{
+	sound_on = self->conf_sel;
+}
+
 /* Reset */
 
 int Menu_Reset_Sel(struct menu_item* self)
@@ -487,7 +518,7 @@ int Menu_Reset_Sel(struct menu_item* self)
 	self->pmenu->menu_done = 1;
 }
 const char* Menu_Reset_ConfText[] = {
-	"No", "Yes",
+	"NO", "YES",
 };
 int Menu_Reset_ConfInit(struct menu_item* self)
 {
@@ -697,6 +728,8 @@ void load_config(void)
 		keys_config[1].buttons[10] = SDLK_UNKNOWN;
 		keys_config[1].buttons[11] = SDLK_UNKNOWN;
 	}
+
+	sound_on = 1;
 	update_remap_config();
 }
 
@@ -736,7 +769,8 @@ void update_remap_config()
 			default:
 			case REMAP_MODE_NONE:
 				break;
-			case REMAP_MODE_HOLDXY:
+			case REMAP_MODE_HOLDY2X:
+			case REMAP_MODE_HOLDX2Y:
 			case REMAP_MODE_PRESSXY:
 				switch(a) {
 				case 0:

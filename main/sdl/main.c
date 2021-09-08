@@ -28,8 +28,8 @@ uint32_t game_alreadyloaded = 0;
 extern int32_t FrameSkip;
 #endif
 
-#define GRA_FRAME 60 /* Same as FPS? */
-#define SKIP_RATE 3
+#define GRA_FRAME 75 /* Same as FPS? */
+#define SKIP_RATE 15
 void graphics_paint(void) 
 {
 #ifdef FRAMESKIP
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 			case GF_MAINUI:
 				Pause_Sound();
 				Menu();
-				if (cartridge_IsLoaded()) 
+				if (sound_on && cartridge_IsLoaded()) 
 				{
 					Resume_Sound();
 				}
