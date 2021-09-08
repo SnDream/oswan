@@ -5,12 +5,6 @@
 
 #define RGB565(r,g,b) ((r << 8) | (g << 3) | (b >> 3))
 
-#define Y_MAIN_MENU \
-	(  (48 + (menu_oswan.Choose_Menu_value * 24)) - 4)
-	
-#define Y_MENU_CONTROLS \
-	( (48 + (menu_oswan.Choose_Menu_value * 16)) - 4)
-
 #define MAX_TEXT_SIZE 48
 
 #define EMULATOR_MAIN_MENU 0
@@ -62,21 +56,7 @@ struct menu_item {
 	int						conf_sel;
 };
 
-#define REMAP_MODE_NONE		0
-#define REMAP_MODE_HOLDY2X	1
-#define REMAP_MODE_HOLDX2Y	2
-#define REMAP_MODE_PRESSXY	3
-#define REMAP_MODE_SWAPOPT	4
-
-struct hardcoded_keys
-{
-	uint32_t buttons[14];
-};
-
 extern uint32_t profile_config;
-extern struct hardcoded_keys keys_config[8];
-extern int remap_state[2];
-extern uint32_t *menu_key[2][2];
 extern struct Menu__ menu_oswan;
 
 extern void Menu(void);

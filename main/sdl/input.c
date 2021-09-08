@@ -1,8 +1,13 @@
+#include "input.h"
 #include "shared.h"
 #include "menu.h"
 #include "drawing.h"
 
 static uint8_t *keys;
+
+struct hardcoded_keys keys_config[8];
+int remap_state[2];
+uint32_t *menu_key[2][2];
 
 /*
 * 0 = Up  (Y1)

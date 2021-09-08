@@ -7,14 +7,12 @@
 #include "browser.h"
 #include "drawing.h"
 #include "shared.h"
+#include "input.h"
 #include "menu.h"
 
 static uint32_t done_menu = 0;
 uint32_t profile_config = 0;
 
-struct hardcoded_keys keys_config[8];
-int remap_state[2];
-uint32_t *menu_key[2][2];
 struct Menu__ menu_oswan;
 
 void print_text_center(const char* text, uint32_t y)
