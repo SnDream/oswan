@@ -16,7 +16,6 @@ struct hardcoded_keys keys_config[8];
 int remap_state[2];
 uint32_t *menu_key[2][2];
 struct Menu__ menu_oswan;
-int sound_on = 0;
 
 void print_text_center(const char* text, uint32_t y)
 {

@@ -12,8 +12,6 @@
 #include "WSFileio.h"
 #include "cpu/necintrf.h"
 
-#include "menu.h"
-
 #define IPeriod 32          	/* HBlank/8 (256/8)					*/
 
 /*uint32_t Run;*/

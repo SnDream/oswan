@@ -209,4 +209,6 @@ extern uint32_t m_Flag;
 extern char gameName[512];
 extern uint32_t game_alreadyloaded;
 
+extern int sound_on;
+
 #endif

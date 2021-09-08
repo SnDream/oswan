@@ -22,6 +22,8 @@ static int32_t FPS = 60;
 static int32_t pastFPS = 0; 
 char gameName[512];
 
+int sound_on = 0;
+
 uint32_t game_alreadyloaded = 0;
 
 #ifdef FRAMESKIP

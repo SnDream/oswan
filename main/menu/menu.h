@@ -78,7 +78,6 @@ extern struct hardcoded_keys keys_config[8];
 extern int remap_state[2];
 extern uint32_t *menu_key[2][2];
 extern struct Menu__ menu_oswan;
-extern int sound_on;
 
 extern void Menu(void);
 extern void load_config(void);
