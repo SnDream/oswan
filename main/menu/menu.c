@@ -776,7 +776,7 @@ void load_config(void)
 		keys_config[HC_H].buttons[HC_KEY_START] = SDLK_RETURN;
 		keys_config[HC_H].buttons[HC_KEY_BTN_A] = SDLK_LCTRL;
 		keys_config[HC_H].buttons[HC_KEY_BTN_B] = SDLK_LALT;
-		keys_config[HC_H].buttons[HC_KEY_REMAP] = SDLK_ESCAPE;
+		keys_config[HC_H].buttons[HC_KEY_REMAP] = SDLK_TAB;
 		keys_config[HC_H].buttons[HC_KEY_REMAPMODE] = REMAP_MODE_HOLDY2X;
 
 		keys_config[HC_V].buttons[HC_KEY_Y1] = SDLK_UP;
@@ -791,7 +791,7 @@ void load_config(void)
 		keys_config[HC_V].buttons[HC_KEY_BTN_A] = SDLK_UNKNOWN;
 		keys_config[HC_V].buttons[HC_KEY_BTN_B] = SDLK_UNKNOWN;
 		keys_config[HC_V].buttons[HC_KEY_REMAP] = SDLK_TAB;
-		keys_config[HC_H].buttons[HC_KEY_REMAPMODE] = REMAP_MODE_ACTIVATE;
+		keys_config[HC_V].buttons[HC_KEY_REMAPMODE] = REMAP_MODE_ACTIVATE;
 #endif
 	}
 
