@@ -32,6 +32,7 @@ uint8_t CartKind;     	/* セーブメモリの種類（CK_EEP = EEPROM）	*/
 
 static int32_t ButtonState = 0x0000;    /* Button state: B.A.START.OPTION.X4.X3.X2.X1.Y4.Y3.Y2.Y1	*/
 uint8_t HVMode;
+uint8_t HVMode_Init;
 static uint16_t HTimer;
 static uint16_t VTimer;
 static uint8_t RtcCount;
@@ -167,7 +168,7 @@ static void WriteIRam(const uint32_t A, uint8_t V)
         SetPalette(A);
     }
 #ifdef SOUND_EMULATION
-    if(sound_on && !((A - WaveMap) & 0xFFC0))
+    if(sound_volume && !((A - WaveMap) & 0xFFC0))
     {
         apuSetPData(A & 0x003F, V);
     }
@@ -299,6 +300,66 @@ void WriteIO(uint32_t A, uint8_t V)
         Scr1TMap = IRAM + ((V & 0x0F) << 11);
         Scr2TMap = IRAM + ((V & 0xF0) << 7);
         break;
+    case 0x15:
+    #ifndef SHOW_LCD_ICON
+        if (V & 0x02) HVMode = 1;
+        if (V & 0x04) HVMode = 0;
+    #else
+        if (V & 0x01)
+        {
+            lcd_icon_stat[LCD_INDEX__POWER_SAVING] = LCD_ICON__POWER_SAVING_ON;
+            // RenderSleep();
+        }
+        else
+        {
+            lcd_icon_stat[LCD_INDEX__POWER_SAVING] = LCD_ICON__POWER_SAVING_OFF;
+        }
+        if (V & 0x02)
+        {
+            // SetDrawMode(1);
+            lcd_icon_stat[LCD_INDEX__VERTICAL] = LCD_ICON__VERTICAL_ON;
+            HVMode = 1;
+        }
+        else
+        {
+            lcd_icon_stat[LCD_INDEX__VERTICAL] = LCD_ICON__VERTICAL_OFF;
+        }
+        if (V & 0x04)
+        {
+            // SetDrawMode(0);
+            lcd_icon_stat[LCD_INDEX__HORIZONTAL] = LCD_ICON__HORIZONTAL_ON;
+            HVMode = 0;
+        }
+        else
+        {
+            lcd_icon_stat[LCD_INDEX__HORIZONTAL] = LCD_ICON__HORIZONTAL_OFF;
+        }
+        if (V & 0x08)
+        {
+            lcd_icon_stat[LCD_INDEX__SMALL_CIRCLE] = LCD_ICON__SMALL_CIRCLE_ON;
+        }
+        else
+        {
+            lcd_icon_stat[LCD_INDEX__SMALL_CIRCLE] = LCD_ICON__SMALL_CIRCLE_OFF;
+        }
+        if (V & 0x10)
+        {
+            lcd_icon_stat[LCD_INDEX__MIDIUM_CIRCLE] = LCD_ICON__MIDIUM_CIRCLE_ON;
+        }
+        else
+        {
+            lcd_icon_stat[LCD_INDEX__MIDIUM_CIRCLE] = LCD_ICON__MIDIUM_CIRCLE_OFF;
+        }
+        if (V & 0x20)
+        {
+            lcd_icon_stat[LCD_INDEX__BIG_CIRCLE] = LCD_ICON__BIG_CIRCLE_ON;
+        }
+        else
+        {
+            lcd_icon_stat[LCD_INDEX__BIG_CIRCLE] = LCD_ICON__BIG_CIRCLE_OFF;
+        }
+    #endif
+        break;
     case 0x1C:
     case 0x1D:
     case 0x1E:
@@ -383,69 +444,69 @@ void WriteIO(uint32_t A, uint8_t V)
 #ifdef SOUND_EMULATION
     case 0x80:
     case 0x81:
-        if(!sound_on) break;
+        if(!sound_volume) break;
         IO[A] = V;
         Ch[0].freq = *(uint16_t*)(IO + SND1FRQ);
         return;
     case 0x82:
     case 0x83:
-        if(!sound_on) break;
+        if(!sound_volume) break;
         IO[A] = V;
         Ch[1].freq = *(uint16_t*)(IO + SND2FRQ);
         return;
     case 0x84:
     case 0x85:
-        if(!sound_on) break;
+        if(!sound_volume) break;
         IO[A] = V;
         Ch[2].freq = *(uint16_t*)(IO + SND3FRQ);
         return;
     case 0x86:
     case 0x87:
-        if(!sound_on) break;
+        if(!sound_volume) break;
         IO[A] = V;
         Ch[3].freq = *(uint16_t*)(IO + SND4FRQ);
         return;
     case 0x88:
-        if(!sound_on) break;
+        if(!sound_volume) break;
         Ch[0].volL = (V >> 4) & 0x0F;
         Ch[0].volR = V & 0x0F;
         break;
     case 0x89:
-        if(!sound_on) break;
+        if(!sound_volume) break;
         Ch[1].volL = (V >> 4) & 0x0F;
         Ch[1].volR = V & 0x0F;
         break;
     case 0x8A:
-        if(!sound_on) break;
+        if(!sound_volume) break;
         Ch[2].volL = (V >> 4) & 0x0F;
         Ch[2].volR = V & 0x0F;
         break;
     case 0x8B:
-        if(!sound_on) break;
+        if(!sound_volume) break;
         Ch[3].volL = (V >> 4) & 0x0F;
         Ch[3].volR = V & 0x0F;
         break;
     case 0x8C:
-        if(!sound_on) break;
+        if(!sound_volume) break;
         Swp.step = (signed char)V;
         break;
     case 0x8D:
-        if(!sound_on) break;
+        if(!sound_volume) break;
         Swp.time = (V + 1) << 5;
         break;
     case 0x8E:
-        if(!sound_on) break;
+        if(!sound_volume) break;
         Noise.pattern = V & 0x07;
         break;
     case 0x8F:
-        if(!sound_on) break;
+        if(!sound_volume) break;
         WaveMap = V << 6;
         for (i = 0; i < 64; i++) {
             apuSetPData(WaveMap + i, IRAM[WaveMap + i]);
         }
         break;
     case 0x90:
-        if(!sound_on) break;
+        if(!sound_volume) break;
         Ch[0].on = V & 0x01;
         Ch[1].on = V & 0x02;
         Ch[2].on = V & 0x04;
@@ -662,6 +723,8 @@ void WsReset (void)
 {
     uint32_t i, j;
 
+    HVMode = HVMode_Init;
+
     Page[0x0] = IRAM;
     sIEep.data = IEep;
     sIEep.we = 0;
@@ -685,6 +748,7 @@ void WsReset (void)
     SprTTMap = SprTMap;
     SprETMap = SprTMap + j - 4;
     WriteIO(0x07, 0x00);
+    WriteIO(0x15, 0x00);
     WriteIO(0x14, 0x01);
     WriteIO(0x1C, 0x99);
     WriteIO(0x1D, 0xFD);
@@ -759,6 +823,8 @@ void WsReset (void)
     ButtonState = 0x0000;
     nec_reset(NULL);
     nec_set_reg(NEC_SP, 0x2000);
+
+    lcd_icon_stat_init();
 }
 
 void WsRomPatch(char *buf)
@@ -820,7 +886,7 @@ int32_t Interrupt(void)
             break;
 #ifdef SOUND_ON
         case 2:
-            if(!sound_on) break;
+            if(!sound_volume) break;
             /* Hblank毎に1サンプルセットすることで12KHzのwaveデータが出来る */
             apuWaveSet();
 			*(uint16_t*)(IO + NCSR) = apuShiftReg();

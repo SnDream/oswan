@@ -19,6 +19,7 @@ struct hardcoded_keys
 
 extern struct hardcoded_keys keys_config[8];
 extern int remap_state[2];
+extern int input_icon_reload;
 extern uint32_t *menu_key[2][2];
 
 #endif

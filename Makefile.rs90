@@ -12,7 +12,7 @@ OBJ_C		= $(notdir $(patsubst %.c, %.o, $(SRC_C)))
 OBJ_CP		= $(notdir $(patsubst %.cpp, %.o, $(SRC_CP)))
 OBJS		= $(OBJ_C) $(OBJ_CP)
 
-CFLAGS	   += -DRS90 -DSOUND_ON -DSOUND_EMULATION -DFRAMESKIP -Ofast -mips32 -fdata-sections -ffunction-sections -mno-check-zero-division -flto -mplt -mno-shared -fno-PIC -DNATIVE_AUDIO -DNATIVE_SOUND
+CFLAGS	   += -DRS90 -DSOUND_ON -DSOUND_EMULATION -DFRAMESKIP -Ofast -mips32 -fdata-sections -ffunction-sections -mno-check-zero-division -flto -mplt -mno-shared -fno-PIC -DNATIVE_AUDIO -DNATIVE_SOUND -DSHOW_LCD_ICON
 CFLAGS	   += -mno-fp-exceptions -mno-check-zero-division -mframe-header-opt -fsingle-precision-constant
 CFLAGS	   += -fno-stack-protector -fomit-frame-pointer -falign-functions=1 -falign-jumps=1 -falign-loops=1
 

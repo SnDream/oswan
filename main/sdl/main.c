@@ -22,7 +22,10 @@ static int32_t FPS = 60;
 static int32_t pastFPS = 0; 
 char gameName[512];
 
-int sound_on = 0;
+int sound_volume = 5;
+
+char lcd_icon_stat[LCD_INDEX__END] = {0};
+char lcd_icon_mode = 0;
 
 uint32_t game_alreadyloaded = 0;
 
@@ -72,6 +75,28 @@ static void exit_oswan()
 	Cleanup_Screen();
 }
 
+void lcd_icon_stat_init(void)
+{
+	lcd_icon_stat[LCD_INDEX__BIG_CIRCLE] = LCD_ICON__BIG_CIRCLE_OFF;
+	lcd_icon_stat[LCD_INDEX__MIDIUM_CIRCLE] = LCD_ICON__MIDIUM_CIRCLE_OFF;
+	lcd_icon_stat[LCD_INDEX__SMALL_CIRCLE] = LCD_ICON__SMALL_CIRCLE_OFF;
+	lcd_icon_stat[LCD_INDEX__HORIZONTAL] = LCD_ICON__HORIZONTAL_OFF;
+	lcd_icon_stat[LCD_INDEX__VERTICAL] = LCD_ICON__VERTICAL_OFF;
+	lcd_icon_stat[LCD_INDEX__EARPHONE] = LCD_ICON__EARPHONE_OFF;
+	lcd_icon_stat[LCD_INDEX__VOLUME] = LCD_ICON__VOLUME_L3;
+	lcd_icon_stat[LCD_INDEX__BATTERY] = LCD_ICON__BATTERY_NORMAL;
+	lcd_icon_stat[LCD_INDEX__POWER_SAVING] = LCD_ICON__POWER_SAVING_OFF;
+	lcd_icon_stat[LCD_INDEX__CARTRIDGE] = LCD_ICON__CARTRIDGE_INSTALLED;
+	lcd_icon_stat[LCD_INDEX__CONSOLE_POWER] = LCD_ICON__CONSOLE_POWER_ON;
+	lcd_icon_stat[LCD_INDEX__PLACEHOLDER] = LCD_ICON__BLANK;
+	lcd_icon_stat[LCD_INDEX__REMAP_Y] = LCD_ICON__REMAP_Y_OFF;
+	lcd_icon_stat[LCD_INDEX__REMAP_X] = LCD_ICON__REMAP_X_OFF;
+	lcd_icon_stat[LCD_INDEX__SWAP_TO_START] = LCD_ICON__SWAP_TO_START_OFF;
+	lcd_icon_stat[LCD_INDEX__SWAP_TO_OPTION] = LCD_ICON__SWAP_TO_OPTION_OFF;
+	lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_A] = LCD_ICON__SWAP_TO_BUTTON_A_OFF;
+	lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_B] = LCD_ICON__SWAP_TO_BUTTON_B_OFF;
+}
+
 int main(int argc, char *argv[]) 
 {
 #ifdef NOROMLOADER
@@ -104,7 +129,7 @@ int main(int argc, char *argv[])
 			case GF_MAINUI:
 				Pause_Sound();
 				Menu();
-				if (sound_on && cartridge_IsLoaded()) 
+				if (sound_volume && cartridge_IsLoaded()) 
 				{
 					Resume_Sound();
 				}

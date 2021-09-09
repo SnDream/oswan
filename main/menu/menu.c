@@ -87,7 +87,11 @@ struct menu Menu_Main = {
 
 int Menu_Main_Init(struct menu* self)
 {
+#ifndef RS90
 	print_text_center("Gameblabla's Oswan", 6);
+#else
+	print_text_center("Gameblabla's Oswan (1x)", 6);
+#endif
 }
 
 int			Menu_Continue_Sel(struct menu_item* self);
@@ -105,9 +109,9 @@ struct menu	Menu_Input;
 const char*	Menu_Input_ConfText[];
 int			Menu_Input_ConfInit(struct menu_item* self);
 
-const char*	Menu_Sound_ConfText[];
-int			Menu_Sound_ConfInit(struct menu_item* self);
-int			Menu_Sound_ConfDone(struct menu_item* self);
+const char*	Menu_Volume_ConfText[];
+int			Menu_Volume_ConfInit(struct menu_item* self);
+int			Menu_Volume_ConfDone(struct menu_item* self);
 
 int			Menu_Reset_Sel(struct menu_item* self);
 const char*	Menu_Reset_ConfText[];
@@ -167,15 +171,15 @@ struct menu_item Menu_Main_Item[] = {
 		.conf_init_call	= Menu_Input_ConfInit,
 		.conf_done_call	= NULL,
 	}, {
-		.name			= "Sound",
+		.name			= "Volume",
 		.sel_call		= NULL,
 		.sub_menu		= NULL,
-		.conf_num		= 2,
+		.conf_num		= 4,
 		.conf_x			= 120,
 		.conf_y			= 0,
-		.conf_text		= Menu_Sound_ConfText,
-		.conf_init_call	= Menu_Sound_ConfInit,
-		.conf_done_call	= Menu_Sound_ConfDone,
+		.conf_text		= Menu_Volume_ConfText,
+		.conf_init_call	= Menu_Volume_ConfInit,
+		.conf_done_call	= Menu_Volume_ConfDone,
 	}, {
 		.name			= "Reset",
 		.sel_call		= Menu_Reset_Sel,
@@ -245,9 +249,15 @@ const char* Menu_Scaling_ConfText[] = {
 	"Fullscreen",
 	"Keep Aspect",
 #else /* Compatible with upstream */
+ #ifndef SHOW_LCD_ICON
 	"Native",
 	"Still Native",
 	"Always Native",
+ #else
+	"Native",
+	"Native Center",
+	"Native w/o Icon",
+ #endif
 #endif
 };
 int Menu_Scaling_ConfInit(struct menu_item* self)
@@ -492,18 +502,35 @@ int Menu_Input_RemapMode_ConfDone(struct menu_item* self)
 	return 0;
 }
 
-/* Sound */
+/* Volume */
 
-const char* Menu_Sound_ConfText[] = {
-	"OFF", "ON",
+const char* Menu_Volume_ConfText[] = {
+	"Mute", "Level 1", "Level 2", "Level 3",
 };
-int Menu_Sound_ConfInit(struct menu_item* self)
+int Menu_Volume_ConfInit(struct menu_item* self)
 {
-	self->conf_sel = sound_on;
+	switch(sound_volume) {
+	default: sound_volume = 0; /* FALL THROUGH */
+	case 0: self->conf_sel = 0; break;
+	case 1: self->conf_sel = 1; break;
+	case 3: self->conf_sel = 2; break;
+	case 5: self->conf_sel = 3; break;
+	}
 }
-int Menu_Sound_ConfDone(struct menu_item* self)
+int Menu_Volume_ConfDone(struct menu_item* self)
 {
-	sound_on = self->conf_sel;
+	int i;
+	switch(self->conf_sel) {
+	default: self->conf_sel = 0; /* FALL THROUGH */
+	case 0: sound_volume = 0; lcd_icon_stat[LCD_INDEX__VOLUME] = LCD_ICON__VOLUME_MUTE; break;
+	case 1: sound_volume = 1; lcd_icon_stat[LCD_INDEX__VOLUME] = LCD_ICON__VOLUME_L1; break;
+	case 2: sound_volume = 3; lcd_icon_stat[LCD_INDEX__VOLUME] = LCD_ICON__VOLUME_L2; break;
+	case 3: sound_volume = 5; lcd_icon_stat[LCD_INDEX__VOLUME] = LCD_ICON__VOLUME_L3; break;
+	}
+	for (i = 0x80; i <= 0x90; i++)
+	{
+		WriteIO(i, IO[i]);
+	}
 }
 
 /* Reset */
@@ -515,7 +542,7 @@ int Menu_Reset_Sel(struct menu_item* self)
 	self->pmenu->menu_done = 1;
 }
 const char* Menu_Reset_ConfText[] = {
-	"NO", "YES",
+	"No", "Confirm",
 };
 int Menu_Reset_ConfInit(struct menu_item* self)
 {
@@ -726,7 +753,6 @@ void load_config(void)
 		keys_config[1].buttons[11] = SDLK_UNKNOWN;
 	}
 
-	sound_on = 1;
 	update_remap_config();
 }
 
@@ -818,6 +844,9 @@ void update_remap_config()
 
 		/* reset remap state */
 		remap_state[i] = 0;
+		#ifdef SHOW_LCD_ICON
+		input_icon_reload = 1;
+		#endif
 
 		/* emu menu */
 		switch(keys_config[i].buttons[12]) {

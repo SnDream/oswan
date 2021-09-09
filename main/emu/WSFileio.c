@@ -266,7 +266,8 @@ uint32_t WsCreate(char *CartName)
         SaveName[0] = 0;
     }
     WsReset();
-	HVMode = buf[6] & 1;
+	HVMode_Init = buf[6] & 1;
+    HVMode = HVMode_Init;
     
 	return 1;
 }
@@ -374,6 +375,9 @@ uint32_t WsLoadState(const char *savename, uint32_t num)
 		printf("Cannot load save state\n");
 		return 1;
 	}
+
+	HVMode = HVMode_Init;
+
 	MacroLoadNecRegisterFromFile(fp,NEC_IP);
 	MacroLoadNecRegisterFromFile(fp,NEC_AW);
 	MacroLoadNecRegisterFromFile(fp,NEC_BW);
@@ -415,6 +419,8 @@ uint32_t WsLoadState(const char *savename, uint32_t num)
 	{
 		WriteIO(i, IO[i]);
 	}
+	
+	WriteIO(0x15, IO[0x15]);
 	
     return 0;
 }

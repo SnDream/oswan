@@ -7,6 +7,7 @@ static uint8_t *keys;
 
 struct hardcoded_keys keys_config[8];
 int remap_state[2];
+int input_icon_reload = 1;
 uint32_t *menu_key[2][2];
 
 /*
@@ -26,17 +27,15 @@ uint32_t *menu_key[2][2];
 
 void exit_button(void)
 {
-	uint32_t rotate_input = 0;
 	uint32_t key1, key2;
 	keys = SDL_GetKeyState(NULL);
-	if (HVMode != 0) rotate_input = 1;
 
-	if (menu_key[rotate_input][0] == NULL || menu_key[rotate_input][1] == NULL) {
+	if (menu_key[HVMode][0] == NULL || menu_key[HVMode][1] == NULL) {
 		key1 = SDLK_ESCAPE;
 		key2 = SDLK_RETURN;
 	} else {
-		key1 = *menu_key[rotate_input][0];
-		key2 = *menu_key[rotate_input][1];
+		key1 = *menu_key[HVMode][0];
+		key2 = *menu_key[HVMode][1];
 	}
 
 	/* Get to Menu hotkey */
@@ -54,55 +53,201 @@ void exit_button(void)
 uint32_t WsInputGetState()
 {
 	static uint8_t kupdate = 0, kpress = 0;
-	uint32_t rotate_input = 0;
 	SDL_Event event;
 	static int32_t button = 0;
 	static int32_t button_hold = 0;
+	static uint32_t rotate_hold = 2;
 	struct hardcoded_keys *key_conf;
-	
-	if (HVMode != 0) rotate_input = 1;
 	
 	SDL_PollEvent(&event);
 	keys = SDL_GetKeyState(NULL);
 
-	key_conf = &keys_config[rotate_input];
+	#ifdef SHOW_LCD_ICON
+	if (rotate_hold != HVMode) {
+		rotate_hold = HVMode;
+		input_icon_reload = 1;
+	}
+	#endif
+
+	key_conf = &keys_config[HVMode];
 	kpress = keys[ key_conf->buttons[12] ];
 	kupdate ^= kpress;
 	switch (key_conf->buttons[13]) {
 	case REMAP_MODE_HOLDY2X:
+		#ifdef SHOW_LCD_ICON
+		if (input_icon_reload) {
+			lcd_icon_stat[LCD_INDEX__REMAP_Y] = LCD_ICON__REMAP_Y_OFF;
+			lcd_icon_stat[LCD_INDEX__REMAP_X] = LCD_ICON__REMAP_X_ON;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_START] = LCD_ICON__SWAP_TO_START_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_OPTION] = LCD_ICON__SWAP_TO_OPTION_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_A] = LCD_ICON__SWAP_TO_BUTTON_A_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_B] = LCD_ICON__SWAP_TO_BUTTON_B_OFF;
+			input_icon_reload = 0;
+		}
+		#endif
 		if (kpress) {
 			button = 0;
 			key_conf += 2;
+			#ifdef SHOW_LCD_ICON
+			if (kupdate) {
+				lcd_icon_stat[LCD_INDEX__REMAP_Y] = LCD_ICON__REMAP_Y_ON;
+				lcd_icon_stat[LCD_INDEX__REMAP_X] = LCD_ICON__REMAP_X_OFF;
+			}
+			#endif
 			break;
 		}
-		if (kupdate) button_hold = button & ((1 << 4) | (1 << 5) | (1 << 6) | (1 << 7));
+		if (kupdate) {
+			#ifdef SHOW_LCD_ICON
+			lcd_icon_stat[LCD_INDEX__REMAP_Y] = LCD_ICON__REMAP_Y_OFF;
+			lcd_icon_stat[LCD_INDEX__REMAP_X] = LCD_ICON__REMAP_X_ON;
+			#endif
+			button_hold = button & ((1 << 4) | (1 << 5) | (1 << 6) | (1 << 7));
+		}
 		button = button_hold;
 		break;
 	case REMAP_MODE_HOLDX2Y:
+		#ifdef SHOW_LCD_ICON
+		if (input_icon_reload) {
+			lcd_icon_stat[LCD_INDEX__REMAP_Y] = LCD_ICON__REMAP_Y_ON;
+			lcd_icon_stat[LCD_INDEX__REMAP_X] = LCD_ICON__REMAP_X_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_START] = LCD_ICON__SWAP_TO_START_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_OPTION] = LCD_ICON__SWAP_TO_OPTION_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_A] = LCD_ICON__SWAP_TO_BUTTON_A_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_B] = LCD_ICON__SWAP_TO_BUTTON_B_OFF;
+			input_icon_reload = 0;
+		}
+		#endif
 		if (kpress) {
 			button = 0;
 			key_conf += 2;
+			#ifdef SHOW_LCD_ICON
+			if (kupdate) {
+				lcd_icon_stat[LCD_INDEX__REMAP_Y] = LCD_ICON__REMAP_Y_OFF;
+				lcd_icon_stat[LCD_INDEX__REMAP_X] = LCD_ICON__REMAP_X_ON;
+			}
+			#endif
 			break;
 		}
-		if (kupdate) button_hold = button & ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3));
+		if (kupdate) {
+			#ifdef SHOW_LCD_ICON
+			lcd_icon_stat[LCD_INDEX__REMAP_Y] = LCD_ICON__REMAP_Y_ON;
+			lcd_icon_stat[LCD_INDEX__REMAP_X] = LCD_ICON__REMAP_X_OFF;
+			#endif
+			button_hold = button & ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3));
+		}
 		button = button_hold;
 		break;
 	case REMAP_MODE_PRESSXY:
+		#ifdef SHOW_LCD_ICON
+		if (input_icon_reload) {
+			switch(remap_state[HVMode] & 0x02) {
+			default:
+			case 0:
+				lcd_icon_stat[LCD_INDEX__REMAP_Y] = LCD_ICON__REMAP_Y_OFF;
+				lcd_icon_stat[LCD_INDEX__REMAP_X] = LCD_ICON__REMAP_X_ON;
+				break;
+			case 2:
+				lcd_icon_stat[LCD_INDEX__REMAP_Y] = LCD_ICON__REMAP_Y_ON;
+				lcd_icon_stat[LCD_INDEX__REMAP_X] = LCD_ICON__REMAP_X_OFF;
+				break;
+			}
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_START] = LCD_ICON__SWAP_TO_START_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_OPTION] = LCD_ICON__SWAP_TO_OPTION_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_A] = LCD_ICON__SWAP_TO_BUTTON_A_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_B] = LCD_ICON__SWAP_TO_BUTTON_B_OFF;
+			input_icon_reload = 0;
+		}
+		#endif
 		button = 0;
-		key_conf += remap_state[rotate_input];
+		key_conf += remap_state[HVMode];
 		if (!kpress || !kupdate) break;
-		remap_state[rotate_input] += 2;
-		remap_state[rotate_input] &= 3;
+		remap_state[HVMode] += 2;
+		remap_state[HVMode] &= 3;
+		#ifdef SHOW_LCD_ICON
+		switch(remap_state[HVMode] & 0x02) {
+		default:
+		case 0:
+			lcd_icon_stat[LCD_INDEX__REMAP_Y] = LCD_ICON__REMAP_Y_OFF;
+			lcd_icon_stat[LCD_INDEX__REMAP_X] = LCD_ICON__REMAP_X_ON;
+			break;
+		case 2:
+			lcd_icon_stat[LCD_INDEX__REMAP_Y] = LCD_ICON__REMAP_Y_ON;
+			lcd_icon_stat[LCD_INDEX__REMAP_X] = LCD_ICON__REMAP_X_OFF;
+			break;
+		}
+		#endif
 		break;
 	case REMAP_MODE_SWAPOPT:
+		#ifdef SHOW_LCD_ICON
+		if (input_icon_reload) {
+			lcd_icon_stat[LCD_INDEX__REMAP_Y] = LCD_ICON__REMAP_Y_OFF;
+			lcd_icon_stat[LCD_INDEX__REMAP_X] = LCD_ICON__REMAP_X_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_START] = LCD_ICON__SWAP_TO_START_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_OPTION] = LCD_ICON__SWAP_TO_OPTION_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_A] = LCD_ICON__SWAP_TO_BUTTON_A_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_B] = LCD_ICON__SWAP_TO_BUTTON_B_OFF;
+			switch(remap_state[HVMode] & 0x06) {
+			default:
+			case 0:
+				lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_B] = LCD_ICON__SWAP_TO_BUTTON_B_OFF;
+				lcd_icon_stat[LCD_INDEX__SWAP_TO_START] = LCD_ICON__SWAP_TO_START_ON;
+				break;
+			case 2:
+				lcd_icon_stat[LCD_INDEX__SWAP_TO_START] = LCD_ICON__SWAP_TO_START_OFF;
+				lcd_icon_stat[LCD_INDEX__SWAP_TO_OPTION] = LCD_ICON__SWAP_TO_OPTION_ON;
+				break;
+			case 4:
+				lcd_icon_stat[LCD_INDEX__SWAP_TO_OPTION] = LCD_ICON__SWAP_TO_OPTION_OFF;
+				lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_A] = LCD_ICON__SWAP_TO_BUTTON_A_ON;
+				break;
+			case 6:
+				lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_A] = LCD_ICON__SWAP_TO_BUTTON_A_OFF;
+				lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_B] = LCD_ICON__SWAP_TO_BUTTON_B_ON;
+				break;
+			}
+			input_icon_reload = 0;
+		}
+		#endif
 		button = 0;
-		key_conf += remap_state[rotate_input];
+		key_conf += remap_state[HVMode];
 		if (!kpress || !kupdate) break;
-		remap_state[rotate_input] += 2;
-		remap_state[rotate_input] &= 7;
+		remap_state[HVMode] += 2;
+		remap_state[HVMode] &= 7;
+		#ifdef SHOW_LCD_ICON
+		switch(remap_state[HVMode] & 0x06) {
+		default:
+		case 0:
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_B] = LCD_ICON__SWAP_TO_BUTTON_B_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_START] = LCD_ICON__SWAP_TO_START_ON;
+			break;
+		case 2:
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_START] = LCD_ICON__SWAP_TO_START_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_OPTION] = LCD_ICON__SWAP_TO_OPTION_ON;
+			break;
+		case 4:
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_OPTION] = LCD_ICON__SWAP_TO_OPTION_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_A] = LCD_ICON__SWAP_TO_BUTTON_A_ON;
+			break;
+		case 6:
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_A] = LCD_ICON__SWAP_TO_BUTTON_A_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_B] = LCD_ICON__SWAP_TO_BUTTON_B_ON;
+			break;
+		}
+		#endif
 		break;
 	default:
 	case REMAP_MODE_NONE:
+		#ifdef SHOW_LCD_ICON
+		if (input_icon_reload) {
+			lcd_icon_stat[LCD_INDEX__REMAP_Y] = LCD_ICON__REMAP_Y_OFF;
+			lcd_icon_stat[LCD_INDEX__REMAP_X] = LCD_ICON__REMAP_X_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_START] = LCD_ICON__SWAP_TO_START_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_OPTION] = LCD_ICON__SWAP_TO_OPTION_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_A] = LCD_ICON__SWAP_TO_BUTTON_A_OFF;
+			lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_B] = LCD_ICON__SWAP_TO_BUTTON_B_OFF;
+			input_icon_reload = 0;
+		}
+		#endif
 		button = 0;
 	}
 	kupdate = kpress;

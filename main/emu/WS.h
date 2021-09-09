@@ -24,6 +24,7 @@ extern uint16_t IEep[64];
 extern struct EEPROM sIEep;
 extern struct EEPROM sCEep;
 extern uint8_t HVMode;
+extern uint8_t HVMode_Init;
 
 #define CK_EEP 1
 extern uint8_t CartKind;
@@ -36,5 +37,7 @@ uint32_t WsRun(void);
 void WsInit(void);
 void WsDeInit(void);
 void SetHVMode(uint32_t Mode);
+
+void WsLcdIconInit(void);
 
 #endif
