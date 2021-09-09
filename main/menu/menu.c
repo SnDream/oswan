@@ -294,7 +294,7 @@ struct menu Menu_Input = {
 	.menu_y			= 0,
 	.menu_init_call	= Menu_Input_MenuInit,
 	.menu_done_call	= NULL,
-	.item_num		= 14,
+	.item_num		= 13,
 	.item_w			= 264,
 	.item_h			= 10,
 	.item			= Menu_Input_Item,
@@ -308,45 +308,53 @@ int Menu_Input_MenuInit(struct menu* self)
 
 	update_remap_config();
 
-	remap_mode = self->item[13].conf_sel;
+	remap_mode = self->item[12].conf_sel;
 	switch (remap_mode) {
 	case REMAP_MODE_HOLDY2X:
-		print_string("Hold         : Overlap Y to X",
-				TextWhite, 0,     0, 142, Surface_to_Draw_menu);
-		print_string(self->item[12].conf_text[self->item[12].conf_sel],
-				TextWhite, 0, 6 * 8, 142, Surface_to_Draw_menu);
+		print_string("Hold         :",
+				TextWhite, 0,     0, 132, Surface_to_Draw_menu);
+		print_string(self->item[11].conf_text[self->item[11].conf_sel],
+				TextWhite, 0, 6 * 8, 132, Surface_to_Draw_menu);
+		print_string("Press X1/2/3/4 as Y1/2/3/4",
+				TextWhite, 0, 4 * 8, 142, Surface_to_Draw_menu);
 		break;
 	case REMAP_MODE_HOLDX2Y:
-		print_string("Hold         : Overlap X to Y",
-				TextWhite, 0,     0, 142, Surface_to_Draw_menu);
-		print_string(self->item[12].conf_text[self->item[12].conf_sel],
-				TextWhite, 0, 6 * 8, 142, Surface_to_Draw_menu);
+		print_string("Hold         :",
+				TextWhite, 0,     0, 132, Surface_to_Draw_menu);
+		print_string(self->item[11].conf_text[self->item[11].conf_sel],
+				TextWhite, 0, 6 * 8, 132, Surface_to_Draw_menu);
+		print_string("Press Y1/2/3/4 as X1/2/3/4",
+				TextWhite, 0, 4 * 8, 142, Surface_to_Draw_menu);
 		break;
 	case REMAP_MODE_PRESSXY:
-		print_string("Press        : Swap X and Y",
-				TextWhite, 0,     0, 142, Surface_to_Draw_menu);
-		print_string(self->item[12].conf_text[self->item[12].conf_sel],
-				TextWhite, 0, 6 * 8, 142, Surface_to_Draw_menu);
+		print_string("Press        :",
+				TextWhite, 0,     0, 132, Surface_to_Draw_menu);
+		print_string(self->item[11].conf_text[self->item[11].conf_sel],
+				TextWhite, 0, 6 * 8, 132, Surface_to_Draw_menu);
+		print_string("Swap X1/2/3/4 and Y1/2/3/4",
+				TextWhite, 0, 4 * 8, 142, Surface_to_Draw_menu);
 		break;
-	case REMAP_MODE_SWAPOPT:
-		print_string("Press        : START\035OPTN\035A\035B",
-				TextWhite, 0,     0, 142, Surface_to_Draw_menu);
-		print_string(self->item[12].conf_text[self->item[12].conf_sel],
-				TextWhite, 0, 6 * 8, 142, Surface_to_Draw_menu);
+	case REMAP_MODE_ACTIVATE:
+		print_string("Press        : START\035A\035B",
+				TextWhite, 0,     0, 132, Surface_to_Draw_menu);
+		print_string(self->item[11].conf_text[self->item[11].conf_sel],
+				TextWhite, 0, 6 * 8, 132, Surface_to_Draw_menu);
+		print_string("Press        as Activation",
+				TextWhite, 0, 4 * 8, 142, Surface_to_Draw_menu);
+		print_string(self->item[11].conf_text[self->item[8].conf_sel],
+				TextWhite, 0,10 * 8, 142, Surface_to_Draw_menu);
 		break;
 	}
 
+	print_string("+      : Emulator Menu",
+			TextWhite, 0, 6 * 8, 152, Surface_to_Draw_menu);
 	input_mode = self->pitem->conf_sel;
 	if (menu_key[input_mode][0] == NULL || menu_key[input_mode][1] == NULL) {
-		print_string("+      : Oswan Emu Menu",
-				TextWhite, 0, 6 * 8, 152, Surface_to_Draw_menu);
 		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(SDLK_ESCAPE)],
 				TextWhite, 0, 0,     152, Surface_to_Draw_menu);
 		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(SDLK_RETURN)],
 				TextWhite, 0, 7 * 8, 152, Surface_to_Draw_menu);
 	} else {
-		print_string("+      : Oswan Emu Menu",
-				TextWhite, 0, 6 * 8, 152, Surface_to_Draw_menu);
 		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(*menu_key[input_mode][0])],
 				TextWhite, 0, 0,     152, Surface_to_Draw_menu);
 		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(*menu_key[input_mode][1])],
@@ -367,7 +375,7 @@ int			Menu_Input_RemapMode_ConfDone(struct menu_item*);
 	.sel_call		= Menu_Input_Button_Sel,		\
 	.sub_menu		= NULL,							\
 	.conf_num		= 16,							\
-	.conf_x			= 144,							\
+	.conf_x			= 160,							\
 	.conf_y			= 0,							\
 	.conf_text		= Menu_Input_Button_ConfText,	\
 	.conf_init_call	= Menu_Input_Button_ConfInit,	\
@@ -383,7 +391,6 @@ struct menu_item Menu_Input_Item[] = {
 	MENU_INPUT_ITEM("X2 (\032)"),
 	MENU_INPUT_ITEM("X3 (\031)"),
 	MENU_INPUT_ITEM("X4 (\033)"),
-	MENU_INPUT_ITEM("OPTION"   ),
 	MENU_INPUT_ITEM("START"    ),
 	MENU_INPUT_ITEM("BUTTON A" ),
 	MENU_INPUT_ITEM("BUTTON B" ),
@@ -393,7 +400,7 @@ struct menu_item Menu_Input_Item[] = {
 		.sel_call		= NULL,
 		.sub_menu		= NULL,
 		.conf_num		= 5,
-		.conf_x			= 144,
+		.conf_x			= 160,
 		.conf_y			= 0,
 		.conf_text		= Menu_Input_RemapMode_ConfText,
 		.conf_init_call	= Menu_Input_RemapMode_ConfInit,
@@ -408,8 +415,14 @@ int Menu_Input_Button_Sel(struct menu_item* self)
 
 	type = self->pmenu->pitem->conf_sel;
 	item_sel = self->pmenu->item_sel;
-	if (type != 0 && type != 1) return 0;
-	if (item_sel < 0 || item_sel >= self->pmenu->item_num) return 0;
+	if (type != HC_H && type != HC_V) return 0;
+	if (item_sel < 0 || item_sel >= HC_KEY_END) return 0;
+	switch (item_sel) {
+		case  8: item_sel = HC_KEY_START; break;
+		case  9: item_sel = HC_KEY_BTN_A; break;
+		case 10: item_sel = HC_KEY_BTN_B; break;
+		case 11: item_sel = HC_KEY_REMAP; break;
+	}
 
 	Clear_Menu();
 	print_text_center("Press a key for", 72 - 2);
@@ -443,8 +456,14 @@ int Menu_Input_Button_ConfInit(struct menu_item* self)
 
 	type = self->pmenu->pitem->conf_sel;
 	item_sel = self->pmenu->item_sel;
-	if (type != 0 && type != 1) return 0;
-	if (item_sel < 0 || item_sel >= self->pmenu->item_num) return 0;
+	if (type != HC_H && type != HC_V) return 0;
+	if (item_sel < 0 || item_sel >= HC_KEY_END) return 0;
+	switch (item_sel) {
+		case  8: item_sel = HC_KEY_START; break;
+		case  9: item_sel = HC_KEY_BTN_A; break;
+		case 10: item_sel = HC_KEY_BTN_B; break;
+		case 11: item_sel = HC_KEY_REMAP; break;
+	}
 
 	key = keys_config[type].buttons[item_sel];
 	self->conf_sel = SDLK2InputSel(key);
@@ -458,8 +477,14 @@ int Menu_Input_Button_ConfDone(struct menu_item* self)
 
 	type = self->pmenu->pitem->conf_sel;
 	item_sel = self->pmenu->item_sel;
-	if (type != 0 && type != 1) return 0;
-	if (item_sel < 0 || item_sel >= self->pmenu->item_num) return 0;
+	if (type != HC_H && type != HC_V) return 0;
+	if (item_sel < 0 || item_sel >= HC_KEY_END) return 0;
+	switch (item_sel) {
+		case  8: item_sel = HC_KEY_START; break;
+		case  9: item_sel = HC_KEY_BTN_A; break;
+		case 10: item_sel = HC_KEY_BTN_B; break;
+		case 11: item_sel = HC_KEY_REMAP; break;
+	}
 
 	key = InputSel2SDLK(self->conf_sel);
 	keys_config[type].buttons[item_sel] = key;
@@ -471,7 +496,7 @@ const char*	Menu_Input_RemapMode_ConfText[] = {
 	"Hold Y\032X",
 	"Hold X\032Y",
 	"Press X\035Y",
-	"Swap START",
+	"Activate",
 };
 int Menu_Input_RemapMode_ConfInit(struct menu_item* self)
 {
@@ -480,10 +505,13 @@ int Menu_Input_RemapMode_ConfInit(struct menu_item* self)
 
 	type = self->pmenu->pitem->conf_sel;
 	item_sel = self->pmenu->item_sel;
-	if (type != 0 && type != 1) return 0;
-	if (item_sel < 0 || item_sel >= self->pmenu->item_num) return 0;
+	if (type != HC_H && type != HC_V) return 0;
 
-	key = keys_config[type].buttons[item_sel];
+	key = keys_config[type].buttons[HC_KEY_REMAPMODE];
+	if (key < REMAP_MODE_NONE || key >= REMAP_MODE_END) {
+		key = REMAP_MODE_NONE;
+		keys_config[type].buttons[HC_KEY_REMAPMODE] = key;
+	}
 	self->conf_sel = key;
 	return 0;
 }
@@ -495,10 +523,9 @@ int Menu_Input_RemapMode_ConfDone(struct menu_item* self)
 
 	type = self->pmenu->pitem->conf_sel;
 	item_sel = self->pmenu->item_sel;
-	if (type != 0 && type != 1) return 0;
-	if (item_sel < 0 || item_sel >= self->pmenu->item_num) return 0;
+	if (type != HC_H && type != HC_V) return 0;
 
-	keys_config[type].buttons[item_sel] = self->conf_sel;
+	keys_config[type].buttons[HC_KEY_REMAPMODE] = self->conf_sel;
 	return 0;
 }
 
@@ -701,9 +728,9 @@ void load_config(void)
 	else
 	{
 		/* Set default settings */
-		for (i=0;i<8;i++)
+		for (i=0;i<6;i++)
 		{
-			for (a=0;a<12;a++)
+			for (a=0;a<14;a++)
 			{
 				keys_config[i].buttons[a] = 0;
 			}
@@ -711,46 +738,61 @@ void load_config(void)
 		
 		/* Default profile */
 		/* Should work for landscape. They can always configure it themselves should they need portrait mode. */
-		keys_config[0].buttons[0] = SDLK_UNKNOWN;
-		keys_config[0].buttons[1] = SDLK_UNKNOWN;
-		keys_config[0].buttons[2] = SDLK_UNKNOWN;
-		keys_config[0].buttons[3] = SDLK_UNKNOWN;
-		keys_config[0].buttons[4] = SDLK_UP;
-		keys_config[0].buttons[5] = SDLK_RIGHT;
-		keys_config[0].buttons[6] = SDLK_DOWN;
-		keys_config[0].buttons[7] = SDLK_LEFT;
-		keys_config[0].buttons[8] = SDLK_ESCAPE;
-		keys_config[0].buttons[9] = SDLK_RETURN;
-		keys_config[0].buttons[10] = SDLK_LCTRL;
-		keys_config[0].buttons[11] = SDLK_LALT;
-		
 #ifndef RS90
-		keys_config[1].buttons[0] = SDLK_LEFT;
-		keys_config[1].buttons[1] = SDLK_UP;
-		keys_config[1].buttons[2] = SDLK_RIGHT;
-		keys_config[1].buttons[3] = SDLK_DOWN;
+		keys_config[HC_H].buttons[HC_KEY_Y1] = SDLK_UNKNOWN;
+		keys_config[HC_H].buttons[HC_KEY_Y2] = SDLK_UNKNOWN;
+		keys_config[HC_H].buttons[HC_KEY_Y3] = SDLK_UNKNOWN;
+		keys_config[HC_H].buttons[HC_KEY_Y4] = SDLK_UNKNOWN;
+		keys_config[HC_H].buttons[HC_KEY_X1] = SDLK_UP;
+		keys_config[HC_H].buttons[HC_KEY_X2] = SDLK_RIGHT;
+		keys_config[HC_H].buttons[HC_KEY_X3] = SDLK_DOWN;
+		keys_config[HC_H].buttons[HC_KEY_X4] = SDLK_LEFT;
+		keys_config[HC_H].buttons[HC_KEY_OPTION] = SDLK_ESCAPE;
+		keys_config[HC_H].buttons[HC_KEY_START] = SDLK_RETURN;
+		keys_config[HC_H].buttons[HC_KEY_BTN_A] = SDLK_LCTRL;
+		keys_config[HC_H].buttons[HC_KEY_BTN_B] = SDLK_LALT;
+
+		keys_config[HC_V].buttons[HC_KEY_Y1] = SDLK_LEFT;
+		keys_config[HC_V].buttons[HC_KEY_Y2] = SDLK_UP;
+		keys_config[HC_V].buttons[HC_KEY_Y3] = SDLK_RIGHT;
+		keys_config[HC_V].buttons[HC_KEY_Y4] = SDLK_DOWN;
+		keys_config[HC_V].buttons[HC_KEY_X1] = SDLK_LCTRL;
+		keys_config[HC_V].buttons[HC_KEY_X2] = SDLK_LALT;
+		keys_config[HC_V].buttons[HC_KEY_X3] = SDLK_LSHIFT;
+		keys_config[HC_V].buttons[HC_KEY_X4] = SDLK_SPACE;
+		keys_config[HC_V].buttons[HC_KEY_OPTION] = SDLK_ESCAPE;
+		keys_config[HC_V].buttons[HC_KEY_START] = SDLK_RETURN;
+		keys_config[HC_V].buttons[HC_KEY_BTN_A] = SDLK_UNKNOWN;
+		keys_config[HC_V].buttons[HC_KEY_BTN_B] = SDLK_UNKNOWN;
 #else
-		keys_config[1].buttons[0] = SDLK_UP;
-		keys_config[1].buttons[1] = SDLK_RIGHT;
-		keys_config[1].buttons[2] = SDLK_DOWN;
-		keys_config[1].buttons[3] = SDLK_LEFT;
+		keys_config[HC_H].buttons[HC_KEY_Y1] = SDLK_UNKNOWN;
+		keys_config[HC_H].buttons[HC_KEY_Y2] = SDLK_UNKNOWN;
+		keys_config[HC_H].buttons[HC_KEY_Y3] = SDLK_UNKNOWN;
+		keys_config[HC_H].buttons[HC_KEY_Y4] = SDLK_UNKNOWN;
+		keys_config[HC_H].buttons[HC_KEY_X1] = SDLK_UP;
+		keys_config[HC_H].buttons[HC_KEY_X2] = SDLK_RIGHT;
+		keys_config[HC_H].buttons[HC_KEY_X3] = SDLK_DOWN;
+		keys_config[HC_H].buttons[HC_KEY_X4] = SDLK_LEFT;
+		keys_config[HC_H].buttons[HC_KEY_START] = SDLK_RETURN;
+		keys_config[HC_H].buttons[HC_KEY_BTN_A] = SDLK_LCTRL;
+		keys_config[HC_H].buttons[HC_KEY_BTN_B] = SDLK_LALT;
+		keys_config[HC_H].buttons[HC_KEY_REMAP] = SDLK_ESCAPE;
+		keys_config[HC_H].buttons[HC_KEY_REMAPMODE] = REMAP_MODE_HOLDY2X;
+
+		keys_config[HC_V].buttons[HC_KEY_Y1] = SDLK_UP;
+		keys_config[HC_V].buttons[HC_KEY_Y2] = SDLK_RIGHT;
+		keys_config[HC_V].buttons[HC_KEY_Y3] = SDLK_DOWN;
+		keys_config[HC_V].buttons[HC_KEY_Y4] = SDLK_LEFT;
+		keys_config[HC_V].buttons[HC_KEY_X1] = SDLK_LALT;
+		keys_config[HC_V].buttons[HC_KEY_X2] = SDLK_LCTRL;
+		keys_config[HC_V].buttons[HC_KEY_X3] = SDLK_RETURN;
+		keys_config[HC_V].buttons[HC_KEY_X4] = SDLK_ESCAPE;
+		keys_config[HC_V].buttons[HC_KEY_START] = SDLK_BACKSPACE;
+		keys_config[HC_V].buttons[HC_KEY_BTN_A] = SDLK_UNKNOWN;
+		keys_config[HC_V].buttons[HC_KEY_BTN_B] = SDLK_UNKNOWN;
+		keys_config[HC_V].buttons[HC_KEY_REMAP] = SDLK_TAB;
+		keys_config[HC_H].buttons[HC_KEY_REMAPMODE] = REMAP_MODE_ACTIVATE;
 #endif
-		
-		keys_config[1].buttons[4] = SDLK_LCTRL;
-		keys_config[1].buttons[5] = SDLK_LALT;
-#ifndef RS90
-		keys_config[1].buttons[6] = SDLK_LSHIFT;
-		keys_config[1].buttons[7] = SDLK_SPACE;
-#else
-		keys_config[1].buttons[6] = SDLK_TAB;
-		keys_config[1].buttons[7] = SDLK_BACKSPACE;
-#endif
-		
-		keys_config[1].buttons[8] = SDLK_ESCAPE;
-		keys_config[1].buttons[9] = SDLK_RETURN;
-				
-		keys_config[1].buttons[10] = SDLK_UNKNOWN;
-		keys_config[1].buttons[11] = SDLK_UNKNOWN;
 	}
 
 	update_remap_config();
@@ -784,11 +826,12 @@ void update_remap_config()
 	int i, a;
 	uint32_t key;
 	
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < HC_END; i++) {
 		/* add remap configs */
-		for (a = 0; a < 12; a++) {
+		for (a = 0; a < HC_KEY_END; a++) {
+			if (a == HC_KEY_OPTION) continue;
 			key = keys_config[i].buttons[a];
-			switch(keys_config[i].buttons[13]) {
+			switch(keys_config[i].buttons[HC_KEY_REMAPMODE]) {
 			default:
 			case REMAP_MODE_NONE:
 				break;
@@ -796,48 +839,36 @@ void update_remap_config()
 			case REMAP_MODE_HOLDX2Y:
 			case REMAP_MODE_PRESSXY:
 				switch(a) {
-				case 0:
-				case 1:
-				case 2:
-				case 3:
-					keys_config[i + 2].buttons[a + 4] = key;
-					break;
-				case 4:
-				case 5:
-				case 6:
-				case 7:
-					keys_config[i + 2].buttons[a - 4] = key;
-					break;
-				default:
-					keys_config[i + 2].buttons[a] = key;
+				case HC_KEY_OPTION: break;
+				case HC_KEY_Y1: keys_config[i + 2].buttons[HC_KEY_X1] = key; break;
+				case HC_KEY_Y2: keys_config[i + 2].buttons[HC_KEY_X2] = key; break;
+				case HC_KEY_Y3: keys_config[i + 2].buttons[HC_KEY_X3] = key; break;
+				case HC_KEY_Y4: keys_config[i + 2].buttons[HC_KEY_X4] = key; break;
+				case HC_KEY_X1: keys_config[i + 2].buttons[HC_KEY_Y1] = key; break;
+				case HC_KEY_X2: keys_config[i + 2].buttons[HC_KEY_Y2] = key; break;
+				case HC_KEY_X3: keys_config[i + 2].buttons[HC_KEY_Y3] = key; break;
+				case HC_KEY_X4: keys_config[i + 2].buttons[HC_KEY_Y4] = key; break;
+				default:        keys_config[i + 2].buttons[a] = key;
 				}
 				break;
-			case REMAP_MODE_SWAPOPT:
+			case REMAP_MODE_ACTIVATE:
 				switch(a) {
-				case 8: 
-					keys_config[i + 2].buttons[9] = key;
-					keys_config[i + 4].buttons[8] = key;
-					keys_config[i + 6].buttons[8] = key;
+				case HC_KEY_OPTION: break;
+				case HC_KEY_START: 
+					keys_config[i + 2].buttons[HC_KEY_BTN_A] = key;
+					keys_config[i + 4].buttons[HC_KEY_BTN_B] = key;
 					break;
-				case 9: 
-					keys_config[i + 2].buttons[8] = key;
-					keys_config[i + 4].buttons[10] = key;
-					keys_config[i + 6].buttons[11] = key;
+				case HC_KEY_BTN_A: 
+					keys_config[i + 2].buttons[HC_KEY_START] = key;
+					keys_config[i + 4].buttons[HC_KEY_BTN_A] = key;
 					break;
-				case 10: 
-					keys_config[i + 2].buttons[10] = key;
-					keys_config[i + 4].buttons[9] = key;
-					keys_config[i + 6].buttons[10] = key;
-					break;
-				case 11: 
-					keys_config[i + 2].buttons[11] = key;
-					keys_config[i + 4].buttons[11] = key;
-					keys_config[i + 6].buttons[9] = key;
+				case HC_KEY_BTN_B: 
+					keys_config[i + 2].buttons[HC_KEY_BTN_B] = key;
+					keys_config[i + 4].buttons[HC_KEY_START] = key;
 					break;
 				default: 
 					keys_config[i + 2].buttons[a] = key;
 					keys_config[i + 4].buttons[a] = key;
-					keys_config[i + 6].buttons[a] = key;
 				}
 			}
 		}
@@ -849,7 +880,7 @@ void update_remap_config()
 		#endif
 
 		/* emu menu */
-		switch(keys_config[i].buttons[12]) {
+		switch(keys_config[i].buttons[HC_KEY_REMAP]) {
 		default:
 			menu_key[i][0] = NULL;
 			menu_key[i][1] = NULL;
@@ -870,8 +901,8 @@ void update_remap_config()
 		case SDLK_BACKSPACE:
 		case SDLK_RETURN:
 		case SDLK_ESCAPE:
-			menu_key[i][0] = &keys_config[i].buttons[12];
-			menu_key[i][1] = &keys_config[i].buttons[9];
+			menu_key[i][0] = &keys_config[i].buttons[HC_KEY_REMAP];
+			menu_key[i][1] = &keys_config[i].buttons[HC_KEY_START];
 		}
 	}
 }

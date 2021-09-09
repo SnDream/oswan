@@ -92,9 +92,8 @@ void lcd_icon_stat_init(void)
 	lcd_icon_stat[LCD_INDEX__REMAP_Y] = LCD_ICON__REMAP_Y_OFF;
 	lcd_icon_stat[LCD_INDEX__REMAP_X] = LCD_ICON__REMAP_X_OFF;
 	lcd_icon_stat[LCD_INDEX__SWAP_TO_START] = LCD_ICON__SWAP_TO_START_OFF;
-	lcd_icon_stat[LCD_INDEX__SWAP_TO_OPTION] = LCD_ICON__SWAP_TO_OPTION_OFF;
-	lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_A] = LCD_ICON__SWAP_TO_BUTTON_A_OFF;
-	lcd_icon_stat[LCD_INDEX__SWAP_TO_BUTTON_B] = LCD_ICON__SWAP_TO_BUTTON_B_OFF;
+	lcd_icon_stat[LCD_INDEX__SWAP_TO_BTN_A] = LCD_ICON__SWAP_TO_BTN_A_OFF;
+	lcd_icon_stat[LCD_INDEX__SWAP_TO_BTN_B] = LCD_ICON__SWAP_TO_BTN_B_OFF;
 }
 
 int main(int argc, char *argv[]) 
