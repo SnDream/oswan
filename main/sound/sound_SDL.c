@@ -27,8 +27,16 @@ static void SDL_callback(void *userdata, uint8_t *stream, int32_t len)
 
 	// SDL_LockMutex(sound_mutex);
 
+#ifndef SOUNDFILL_RATE
+	int32_t apubuflack = len - (apuBufLen() & ~(1L));
+
+	if (apubuflack > 0){
+		rBuf -= (apubuflack < rBuf) ? apubuflack : apubuflack - SND_RNGSIZE;
+	}
+#else
 	rate = len / (apuBufLen() + 1);
 	if (rate == 0) {
+#endif
 		if (rBuf + len <= SND_RNGSIZE) {
 			memcpy(buffer, sndbuffer + rBuf, len * sizeof(uint16_t));
 			rBuf += len;
@@ -38,6 +46,7 @@ static void SDL_callback(void *userdata, uint8_t *stream, int32_t len)
 			memcpy(buffer + i, sndbuffer, (len - i) * sizeof(uint16_t));
 			rBuf = len - i;
 		}
+#ifdef SOUNDFILL_RATE
 	} else {
 		rate *= 2;
 		len /= 2;
@@ -52,6 +61,7 @@ static void SDL_callback(void *userdata, uint8_t *stream, int32_t len)
 			*(buffer++) = RR;
 		}
 	}
+#endif
 
 	// SDL_UnlockMutex(sound_mutex);
 	// SDL_CondSignal(sound_cv);
