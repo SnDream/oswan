@@ -26,7 +26,7 @@ void SetVideo(uint8_t mode)
 	 #ifndef SHOW_LCD_ICON
 	FrameBuffer = actualScreen->pixels + (8 * 240 + 8) * sizeof(uint16_t);
 	 #else
-	FrameBuffer = actualScreen->pixels + (menu_oswan.scaling != 0 ? 8 * 240 + 4 : 8 * 240 + 8) * sizeof(uint16_t);
+	FrameBuffer = actualScreen->pixels + (menu_oswan.scaling ? 8 * 240 + 8 : 8 * 240 + 4) * sizeof(uint16_t);
 	 #endif
 	#endif
 }
@@ -75,7 +75,7 @@ void Update_Screen()
 	 #ifndef SHOW_LCD_ICON
 	FrameBuffer = actualScreen->pixels + (8 * 240 + 8) * sizeof(uint16_t);
 	 #else
-	FrameBuffer = actualScreen->pixels + (menu_oswan.scaling != 0 ? 8 * 240 + 4 : 8 * 240 + 8) * sizeof(uint16_t);
+	FrameBuffer = actualScreen->pixels + (menu_oswan.scaling ? 8 * 240 + 8 : 8 * 240 + 4) * sizeof(uint16_t);
 	 #endif
 	#endif
 }
@@ -170,12 +170,12 @@ void screen_draw(void)
 	}
 	 #else
 	uint16_t *pp, *is;
-	pp = actualScreen->pixels + (menu_oswan.scaling != 0 ? 8 * 240 - 4 : 8 * 240 + 0) * sizeof(uint16_t);
+	pp = actualScreen->pixels + (menu_oswan.scaling ? 8 * 240 + 0 : 8 * 240 - 4) * sizeof(uint16_t);
 	for (int y = 0 ; y < 144 ; y++) {
 		memset(pp, 0x0, sizeof(uint16_t) * 8);
 		pp += 240;
 	}
-	pp = actualScreen->pixels + (menu_oswan.scaling != 0 ? 8 * 240 + 228 : 8 * 240 + 232) * sizeof(uint16_t);
+	pp = actualScreen->pixels + (menu_oswan.scaling ? 8 * 240 + 232 : 8 * 240 + 228) * sizeof(uint16_t);
 	for (int i = 0 ; i < LCD_INDEX__END; i++) {
 		is = &lcd_icon_data[menu_oswan.scaling != 2 ? lcd_icon_stat[i] * ICON_DATA_U16SIZE : LCD_ICON__BLANK];
 		for (int y = 0; y < ICON_DATA_LINE_COUNT; y++) {
