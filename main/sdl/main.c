@@ -167,12 +167,9 @@ int main(int argc, char *argv[])
 				#ifndef NO_WAIT
 				currentTick = SDL_GetTicks(); 
 				wait = (nextTick - currentTick);
-				if (wait > 25) 
+				if (wait > 0) 
 				{
-					if (wait < 1000) 
-					{
-						SDL_Delay(wait);
-					}
+					SDL_Delay(wait);
 				}
 				nextTick += interval;
 				#endif
