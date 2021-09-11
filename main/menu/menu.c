@@ -879,17 +879,30 @@ void update_remap_config()
 		input_icon_reload = 1;
 		#endif
 
+		menu_key[i][0] = NULL;
+		menu_key[i][1] = NULL;
+
 		/* emu menu */
 		switch(keys_config[i].buttons[HC_KEY_REMAP]) {
-		default:
-			menu_key[i][0] = NULL;
-			menu_key[i][1] = NULL;
-			break;
 #ifndef RS90
 		case SDLK_LSHIFT:
 		case SDLK_SPACE:
 		case SDLK_PAGEUP:
 		case SDLK_PAGEDOWN:
+		case SDLK_TAB:
+		case SDLK_ESCAPE:
+#else
+		/* L + Select is not working in rs-90 */
+		case SDLK_ESCAPE:
+			if (keys_config[i].buttons[HC_KEY_START] == SDLK_TAB) break;
+			menu_key[i][0] = &keys_config[i].buttons[HC_KEY_REMAP];
+			menu_key[i][1] = &keys_config[i].buttons[HC_KEY_START];
+			break;
+		case SDLK_TAB:
+			if (keys_config[i].buttons[HC_KEY_START] == SDLK_ESCAPE) break;
+			menu_key[i][0] = &keys_config[i].buttons[HC_KEY_REMAP];
+			menu_key[i][1] = &keys_config[i].buttons[HC_KEY_START];
+			break;
 #endif
 		case SDLK_UP:
 		case SDLK_DOWN:
@@ -897,10 +910,8 @@ void update_remap_config()
 		case SDLK_RIGHT:
 		case SDLK_LCTRL:
 		case SDLK_LALT:
-		case SDLK_TAB:
 		case SDLK_BACKSPACE:
 		case SDLK_RETURN:
-		case SDLK_ESCAPE:
 			menu_key[i][0] = &keys_config[i].buttons[HC_KEY_REMAP];
 			menu_key[i][1] = &keys_config[i].buttons[HC_KEY_START];
 		}
