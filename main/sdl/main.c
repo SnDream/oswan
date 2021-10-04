@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 					lastTick = SDL_GetTicks();
 					#ifndef NO_WAIT
 					/* Init timing */
-					interval = 1000 / 60; // (1.0f / 60) * 1000000;
+					interval = 1000 / 75; // (1.0f / 60) * 1000000;
 					nextTick = SDL_GetTicks() + interval;
 					#endif
 				}
@@ -165,13 +165,8 @@ int main(int argc, char *argv[])
 		
 			case GF_GAMERUNNING:	
 				#ifndef NO_WAIT
-				currentTick = SDL_GetTicks(); 
-				wait = (nextTick - currentTick);
-				if (wait > 0) 
-				{
-					SDL_Delay(wait);
-				}
-				nextTick += interval;
+				while (nextTick > (currentTick = SDL_GetTicks())) SDL_Delay(1);
+				nextTick = currentTick + interval;
 				#endif
 				exit_button();
 				WsRun();

@@ -18,12 +18,12 @@ static void SDL_callback(void *userdata, uint8_t *stream, int32_t len)
 	int rate, repeat;
 	uint16_t LL, RR;
 	
-	len /= 2;
-	
+	/*
     if (len <= 0 || !buffer)
 	{
 		return;
 	}
+	*/
 
 	// SDL_LockMutex(sound_mutex);
 
@@ -33,7 +33,9 @@ static void SDL_callback(void *userdata, uint8_t *stream, int32_t len)
 	if (apubuflack > 0){
 		rBuf -= (apubuflack < rBuf) ? apubuflack : apubuflack - SND_RNGSIZE;
 	}
+	len /= 2;
 #else
+	len /= 2;
 	rate = len / (apuBufLen() + 1);
 	if (rate == 0) {
 #endif

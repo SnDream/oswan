@@ -989,7 +989,7 @@ uint32_t WsRun(void)
     #define CYCLES 1706
     #endif
     
-    for(i = 0; i < CYCLES; i++)
+    for(i = 0; i < 159 * 8; i++)
     {
         cycle = nec_execute(period);
         period += IPeriod - cycle;
