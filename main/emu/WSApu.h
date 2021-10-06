@@ -8,7 +8,7 @@
 #ifdef NATIVE_AUDIO
 #define BUFSIZEN    0x10000
 #define SND_BNKSIZE 512
-#define SND_RNGSIZE (32 * SND_BNKSIZE) /* Was 10 * SND_BNKSIZE */
+#define SND_RNGSIZE (8 * SND_BNKSIZE) /* Was 10 * SND_BNKSIZE */
 #else
 #define BUFSIZEN    0x10000
 #define SND_BNKSIZE 512

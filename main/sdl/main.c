@@ -15,8 +15,9 @@ void msleep(long milisec);
 #endif
 
 uint32_t m_Flag;
-static long interval;
-static long nextTick, lastTick = 0, newTick, currentTick, wait;
+// static long interval;
+#define interval (1000 / 75)
+static long nextTick, lastTick = 0, newTick, currentTick;
 static long skipTick = INT32_MIN;
 static int32_t FPS = 60; 
 static int32_t pastFPS = 0; 
@@ -150,7 +151,7 @@ int main(int argc, char *argv[])
 					lastTick = SDL_GetTicks();
 					#ifndef NO_WAIT
 					/* Init timing */
-					interval = 1000 / 75; // (1.0f / 60) * 1000000;
+					// interval = 1000 / 75; // (1.0f / 60) * 1000000;
 					nextTick = SDL_GetTicks() + interval;
 					#endif
 				}
@@ -166,7 +167,8 @@ int main(int argc, char *argv[])
 			case GF_GAMERUNNING:	
 				#ifndef NO_WAIT
 				while (nextTick > (currentTick = SDL_GetTicks())) SDL_Delay(1);
-				nextTick = currentTick + interval;
+				if (nextTick + 1000 < currentTick) nextTick = currentTick;
+				else nextTick += interval;
 				#endif
 				exit_button();
 				WsRun();

@@ -81,7 +81,7 @@ void Init_Sound()
 	#else
 	fmt.freq = 44800;
 	#endif
-	fmt.samples = SND_BNKSIZE;
+	fmt.samples = 159 * 8 / 4; /* WsRun CYCLE */
 	fmt.format = AUDIO_S16SYS;
 	fmt.channels = 2;
 	fmt.callback = SDL_callback;
