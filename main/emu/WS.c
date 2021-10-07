@@ -38,7 +38,6 @@ static uint16_t VTimer;
 static uint8_t RtcCount;
 
 int32_t FrameSkip = 0;
-
 #ifdef SOUND_EMULATION
 static uint32_t WaveMap;
 #endif
@@ -852,15 +851,17 @@ void WsRomPatch(char *buf)
     }
 }
 
-int32_t Interrupt(void)
+static uint8_t LCount, YCount;
+
+int32_t Interrupt()
 {
-    static int32_t LCount=0, Joyz=0x0000;
+    static int32_t Joyz=0x0000;
     int32_t i, j;
 
-    if(++LCount>=8) 	/* 8回で1Hblank期間 */
-    {
-        LCount=0;
-    }
+    // if(++LCount>=8) 	/* 8回で1Hblank期間 */
+    // {
+    //     LCount=0;
+    // }
     switch(LCount)
     {
         case 0:
@@ -903,9 +904,9 @@ int32_t Interrupt(void)
                 SprETMap= SprTMap + j - 4;
             }
 
-            if(IO[LCDSLP] & 0x01)
+            if((FrameSkip == 0) && (IO[LCDSLP] & 0x01))
             {
-                if (FrameSkip == 0 && IO[RSTRL] < 144)
+                if (IO[RSTRL] < 144)
                 {
                     RefreshLine(IO[RSTRL]);
                 }
@@ -963,11 +964,7 @@ int32_t Interrupt(void)
             }
             break;
         case 7:
-            IO[RSTRL]++;
-            if(IO[RSTRL] >= 159)
-            {
-                IO[RSTRL] = 0;
-            }
+            IO[RSTRL] = YCount;
             /* Hblankカウントアップ */
             (*(uint16_t*)(IO + HCNT))++;
             break;
@@ -980,7 +977,7 @@ int32_t Interrupt(void)
 uint32_t WsRun(void)
 {
     static int32_t period = IPeriod;
-    int32_t i, iack, inum;
+    int32_t iack, inum;
     int32_t cycle;
     
     #ifdef NATIVE_SOUND
@@ -989,22 +986,23 @@ uint32_t WsRun(void)
     #define CYCLES 1706
     #endif
     
-    for(i = 0; i < 159 * 8; i++)
-    {
-        cycle = nec_execute(period);
-        period += IPeriod - cycle;
-        if(Interrupt())
-        {
-            iack = IO[IRQACK];
-            for(inum = 7; inum >= 0; inum--)
+    for(YCount = 0; YCount < 159; YCount++){
+        for (LCount = 0; LCount < 8 ; LCount++) {
+            cycle = nec_execute(period);
+            period += IPeriod - cycle;
+            if(Interrupt())
             {
-                if(iack & 0x80)
+                iack = IO[IRQACK];
+                for(inum = 7; inum >= 0; inum--)
                 {
-                    break;
+                    if(iack & 0x80)
+                    {
+                        break;
+                    }
+                    iack <<= 1;
                 }
-                iack <<= 1;
+                nec_int((inum + IO[IRQBSE]) << 2);
             }
-            nec_int((inum + IO[IRQBSE]) << 2);
         }
     }
     return 0;

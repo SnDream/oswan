@@ -34,29 +34,10 @@ uint32_t game_alreadyloaded = 0;
 extern int32_t FrameSkip;
 #endif
 
-#define GRA_FRAME 75 /* Same as FPS? */
-#define SKIP_RATE 15
+#define SKIP_RATE 5
 void graphics_paint(void) 
 {
-#ifdef FRAMESKIP
-	newTick = SDL_GetTicks();
-	
-	skipTick += newTick > lastTick ? (newTick - lastTick) : 0 - 1000 / GRA_FRAME;
-	if (skipTick < 0) skipTick = 0;
-	lastTick = newTick;
-
-	if (FrameSkip == 0) {
-		screen_draw();
-		FrameSkip = (skipTick / (1000 / GRA_FRAME));
-		if (FrameSkip > GRA_FRAME / SKIP_RATE) FrameSkip = GRA_FRAME / SKIP_RATE;
-		skipTick %= 1000 / GRA_FRAME;
-	}
-	else {
-		FrameSkip--;
-	}
-#else
 	screen_draw();
-#endif
 }
 
 static void initSDL(void) 
@@ -166,7 +147,21 @@ int main(int argc, char *argv[])
 		
 			case GF_GAMERUNNING:	
 				#ifndef NO_WAIT
-				while (nextTick > (currentTick = SDL_GetTicks())) SDL_Delay(1);
+				currentTick = SDL_GetTicks();
+				 #ifdef FRAMESKIP
+				if (nextTick <= currentTick) {
+					if (FrameSkip++ > SKIP_RATE) FrameSkip = 0;
+				} else {
+					FrameSkip = 0;
+				 #else
+				{
+				 #endif
+					while (nextTick > currentTick) {
+						SDL_Delay(1);
+						currentTick = SDL_GetTicks();
+					}
+					
+				}
 				if (nextTick + 1000 < currentTick) nextTick = currentTick;
 				else nextTick += interval;
 				#endif
