@@ -215,14 +215,12 @@ int Menu_Continue_Sel(struct menu_item* self)
 int Menu_Load_State_Sel(struct menu_item* self)
 {
 	if (!cartridge_IsLoaded()) return 0;
-	WsLoadState(gameName, self->conf_sel);
-	self->pmenu->menu_done = 1;
+	if (WsLoadState(gameName, self->conf_sel) == 0) self->pmenu->menu_done = 1;
 }
 int Menu_Save_State_Sel(struct menu_item* self)
 {
 	if (!cartridge_IsLoaded()) return 0;
-	WsSaveState(gameName, self->conf_sel);
-	self->pmenu->menu_done = 1;
+	if (WsSaveState(gameName, self->conf_sel) == 0) self->pmenu->menu_done = 1;
 }
 const char* Menu_State_ConfText[] = {
 	"0", "1", "2", "3", "4",
