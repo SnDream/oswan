@@ -411,6 +411,10 @@ uint32_t WsLoadState(const char *savename, uint32_t num)
     }
 	result = fread(Palette, sizeof(uint16_t), 16 * 16, fp);
     fclose(fp);
+	WriteIO(0x1C, IO[0x1C]);
+	WriteIO(0x1D, IO[0x1D]);
+	WriteIO(0x1E, IO[0x1E]);
+	WriteIO(0x1F, IO[0x1F]);
 	WriteIO(0xC1, IO[0xC1]);
 	WriteIO(0xC2, IO[0xC2]);
 	WriteIO(0xC3, IO[0xC3]);
