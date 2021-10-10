@@ -5,6 +5,7 @@ cp ./oswan opk/oswan
 cp ./icon.png opk/icon.png
 cp ./COPYING opk/COPYING
 cp ./COPYING opk/MINIZIP-COPYING
+cp ./README.md opk/readme.md
 
 # https://unix.stackexchange.com/questions/219268/how-to-add-new-lines-when-using-echo
 print()
@@ -19,13 +20,14 @@ esac
 
 print '[Desktop Entry]
 Type=Application
-Name=Oswan(1x)
+Name=Oswan+
 Comment=WS/WSC emulator
 Exec=oswan %f
 Icon=icon
 Terminal=false
 Type=Application
 Categories=emulators;
+X-OD-Manual=readme.md
 X-OD-NeedsDownscaling=false' > opk/default."$1".desktop
 
 mksquashfs ./opk oswan_"$1".opk -all-root -noappend -no-exports -no-xattrs

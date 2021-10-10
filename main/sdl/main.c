@@ -14,6 +14,8 @@
 void msleep(long milisec);
 #endif
 
+struct config config;
+
 uint32_t m_Flag;
 // static long interval;
 #define interval (1000 / 75)
@@ -23,10 +25,7 @@ static int32_t FPS = 60;
 static int32_t pastFPS = 0; 
 char gameName[512];
 
-int sound_volume = 5;
-
 char lcd_icon_stat[LCD_INDEX__END] = {0};
-char lcd_icon_mode = 0;
 
 uint32_t game_alreadyloaded = 0;
 
@@ -51,7 +50,7 @@ static void initSDL(void)
 
 static void exit_oswan()
 {
-	save_config();
+	save_config(NULL);
 	WsDeInit();
 	Cleanup_Sound();
 	Cleanup_Screen();
@@ -65,7 +64,12 @@ void lcd_icon_stat_init(void)
 	lcd_icon_stat[LCD_INDEX__HORIZONTAL] = LCD_ICON__HORIZONTAL_OFF;
 	lcd_icon_stat[LCD_INDEX__VERTICAL] = LCD_ICON__VERTICAL_OFF;
 	lcd_icon_stat[LCD_INDEX__EARPHONE] = LCD_ICON__EARPHONE_OFF;
-	lcd_icon_stat[LCD_INDEX__VOLUME] = LCD_ICON__VOLUME_L3;
+	switch(config.volume) {
+		default:      lcd_icon_stat[LCD_INDEX__VOLUME] = LCD_ICON__VOLUME_L3; break;
+		case 3 ... 4: lcd_icon_stat[LCD_INDEX__VOLUME] = LCD_ICON__VOLUME_L2; break;
+		case 1 ... 2: lcd_icon_stat[LCD_INDEX__VOLUME] = LCD_ICON__VOLUME_L1; break;
+		case 0:       lcd_icon_stat[LCD_INDEX__VOLUME] = LCD_ICON__VOLUME_MUTE; 
+	}
 	lcd_icon_stat[LCD_INDEX__BATTERY] = LCD_ICON__BATTERY_NORMAL;
 	lcd_icon_stat[LCD_INDEX__POWER_SAVING] = LCD_ICON__POWER_SAVING_OFF;
 	lcd_icon_stat[LCD_INDEX__CARTRIDGE] = LCD_ICON__CARTRIDGE_INSTALLED;
@@ -85,7 +89,8 @@ int main(int argc, char *argv[])
 #endif
 	m_Flag = GF_MAINUI;
 	
-	load_config();
+	default_config();
+	load_config(NULL);
 	
 	/* Init graphics & sound */
 	initSDL();
@@ -99,6 +104,7 @@ int main(int argc, char *argv[])
 		SetVideo(1);
 #endif
 		snprintf(gameName, sizeof(gameName) ,"%s", argv[1]);
+		config.custom = load_config(gameName) ? 1 : 0;
 		m_Flag = GF_GAMEINIT;
 		game_alreadyloaded = 1;
 	}
@@ -110,7 +116,7 @@ int main(int argc, char *argv[])
 			case GF_MAINUI:
 				Pause_Sound();
 				Menu();
-				if (sound_volume && cartridge_IsLoaded()) 
+				if (config.volume && cartridge_IsLoaded()) 
 				{
 					Resume_Sound();
 				}

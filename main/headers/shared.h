@@ -19,6 +19,10 @@
 #define PATH_MAX 2048
 #endif
 
+#ifndef CONFIG_LINE_MAX
+#define CONFIG_LINE_MAX 256
+#endif
+
 #ifndef RS90
 #define MENU_SCREEN_WIDTH 320
 #define MENU_SCREEN_HEIGHT 240
@@ -269,12 +273,19 @@ enum lcd_icon {
 };
 
 extern char lcd_icon_stat[LCD_INDEX__END];
-extern char lcd_icon_mode;
+
+struct config
+{
+	int scaling;
+	int remap_mode[2];
+	int volume;
+	int custom;
+};
+
+extern struct config config;
 
 extern uint32_t m_Flag;
 extern char gameName[512];
 extern uint32_t game_alreadyloaded;
-
-extern int sound_volume;
 
 #endif

@@ -12,13 +12,11 @@
 #define SETTINGS_KEY_SCREEN 2
 #define CONTROLS_MENU_NOSET 3
 
-struct Menu__
-{
-	uint32_t Choose_Menu_value;
-	uint32_t maximum_menu;
-	uint32_t state_number;
-	uint32_t scaling;
-	uint32_t menu_state;
+struct config_line {
+	char *name;
+	int  *ref;
+	int  min;
+	int  max;
 };
 
 #define FONT_X_AUTO (-1)
@@ -60,8 +58,11 @@ extern uint32_t profile_config;
 extern struct Menu__ menu_oswan;
 
 extern void Menu(void);
-extern void load_config(void);
-extern void save_config(void);
-extern void update_remap_config();
+extern void default_config();
+extern int load_config(const char *gamepath);
+extern int save_config(const char *gamepath);
+extern void update_all_config();
+extern void update_key_config();
+extern void update_volume_config();
 
 #endif

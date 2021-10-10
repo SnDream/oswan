@@ -33,7 +33,6 @@ enum hc_key {
 	HC_KEY_END,
 
 	HC_KEY_REMAP = HC_KEY_OPTION,
-	HC_KEY_REMAPMODE = HC_KEY_END, /* Not a key */
 };
 
 enum remap_mode {

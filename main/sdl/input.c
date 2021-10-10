@@ -72,7 +72,7 @@ uint32_t WsInputGetState()
 	key_conf = &keys_config[HVMode];
 	kpress = keys[key_conf->buttons[HC_KEY_REMAP]];
 	kupdate ^= kpress;
-	switch (key_conf->buttons[HC_KEY_REMAPMODE]) {
+	switch (config.remap_mode[HVMode]) {
 	case REMAP_MODE_HOLDY2X:
 		#ifdef SHOW_LCD_ICON
 		if (input_icon_reload) {

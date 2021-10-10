@@ -308,8 +308,8 @@ void apuWaveSet(void)
     
     vVol = (apuVoice() - 0x80);
     /* mix 16bits wave -32768 ～ +32767 32768/120 = 273 */
-    LL = (lVol[0] + lVol[1] + lVol[2] + lVol[3] + vVol) << sound_volume;
-    RR = (rVol[0] + rVol[1] + rVol[2] + rVol[3] + vVol) << sound_volume;
+    LL = (lVol[0] + lVol[1] + lVol[2] + lVol[3] + vVol) << config.volume;
+    RR = (rVol[0] + rVol[1] + rVol[2] + rVol[3] + vVol) << config.volume;
 
 	#ifdef NATIVE_AUDIO
     sndbuffer[wBuf++] = LL;

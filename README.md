@@ -1,3 +1,10 @@
+Oswan+ by SnDream
+======================
+
+Oswan+ is a fork of Gameblabla's Oswan, aimed at a better experience on the RS-90.
+
+This fork tries to improve the speed, supports large ROMs (4M+), simple LCD icon emulation, and some other features.
+
 Gameblabla's Oswan
 =======================
 

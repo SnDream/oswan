@@ -13,8 +13,6 @@
 static uint32_t done_menu = 0;
 uint32_t profile_config = 0;
 
-struct Menu__ menu_oswan;
-
 void print_text_center(const char* text, uint32_t y)
 {
 	uint32_t sizeofarray = strnlen(text, MAX_TEXT_SIZE);
@@ -90,7 +88,7 @@ int Menu_Main_Init(struct menu* self)
 #ifndef RS90
 	print_text_center("Gameblabla's Oswan", 6);
 #else
-	print_text_center("Gameblabla's Oswan (1x)", 6);
+	print_text_center("Oswan+", 6);
 #endif
 }
 
@@ -260,14 +258,14 @@ const char* Menu_Scaling_ConfText[] = {
 };
 int Menu_Scaling_ConfInit(struct menu_item* self)
 {
-	if (menu_oswan.scaling < 0 || menu_oswan.scaling > self->conf_num) {
-		menu_oswan.scaling = 0;
+	if (config.scaling < 0 || config.scaling > self->conf_num) {
+		config.scaling = 0;
 	}
-	self->conf_sel = menu_oswan.scaling;
+	self->conf_sel = config.scaling;
 }
 int Menu_Scaling_ConfDone(struct menu_item* self)
 {
-	menu_oswan.scaling = self->conf_sel;
+	config.scaling = self->conf_sel;
 }
 
 /* Input Options */
@@ -304,7 +302,7 @@ int Menu_Input_MenuInit(struct menu* self)
 {
 	int remap_mode, input_mode;
 
-	update_remap_config();
+	update_key_config();
 
 	remap_mode = self->item[12].conf_sel;
 	switch (remap_mode) {
@@ -505,10 +503,10 @@ int Menu_Input_RemapMode_ConfInit(struct menu_item* self)
 	item_sel = self->pmenu->item_sel;
 	if (type != HC_H && type != HC_V) return 0;
 
-	key = keys_config[type].buttons[HC_KEY_REMAPMODE];
+	key = config.remap_mode[type];
 	if (key < REMAP_MODE_NONE || key >= REMAP_MODE_END) {
 		key = REMAP_MODE_NONE;
-		keys_config[type].buttons[HC_KEY_REMAPMODE] = key;
+		config.remap_mode[type] = key;
 	}
 	self->conf_sel = key;
 	return 0;
@@ -523,7 +521,7 @@ int Menu_Input_RemapMode_ConfDone(struct menu_item* self)
 	item_sel = self->pmenu->item_sel;
 	if (type != HC_H && type != HC_V) return 0;
 
-	keys_config[type].buttons[HC_KEY_REMAPMODE] = self->conf_sel;
+	config.remap_mode[type] = self->conf_sel;
 	return 0;
 }
 
@@ -534,8 +532,8 @@ const char* Menu_Volume_ConfText[] = {
 };
 int Menu_Volume_ConfInit(struct menu_item* self)
 {
-	switch(sound_volume) {
-	default: sound_volume = 0; /* FALL THROUGH */
+	switch(config.volume) {
+	default: config.volume = 0; /* FALL THROUGH */
 	case 0: self->conf_sel = 0; break;
 	case 1: self->conf_sel = 1; break;
 	case 3: self->conf_sel = 2; break;
@@ -547,11 +545,12 @@ int Menu_Volume_ConfDone(struct menu_item* self)
 	int i;
 	switch(self->conf_sel) {
 	default: self->conf_sel = 0; /* FALL THROUGH */
-	case 0: sound_volume = 0; lcd_icon_stat[LCD_INDEX__VOLUME] = LCD_ICON__VOLUME_MUTE; break;
-	case 1: sound_volume = 1; lcd_icon_stat[LCD_INDEX__VOLUME] = LCD_ICON__VOLUME_L1; break;
-	case 2: sound_volume = 3; lcd_icon_stat[LCD_INDEX__VOLUME] = LCD_ICON__VOLUME_L2; break;
-	case 3: sound_volume = 5; lcd_icon_stat[LCD_INDEX__VOLUME] = LCD_ICON__VOLUME_L3; break;
+	case 0: config.volume = 0; break;
+	case 1: config.volume = 1; break;
+	case 2: config.volume = 3; break;
+	case 3: config.volume = 5; break;
 	}
+	update_volume_config();
 	for (i = 0x80; i <= 0x90; i++)
 	{
 		WriteIO(i, IO[i]);
@@ -694,7 +693,7 @@ void Menu()
 
 	if (m_Flag == GF_MAINUI) m_Flag = GF_GAMERUNNING;
 
-	SetVideo(menu_oswan.scaling);
+	SetVideo(config.scaling);
 
 	/* Clear the screen before going back to Game or exiting the emulator */
 	Clear_Screen();
@@ -702,121 +701,209 @@ void Menu()
 
 /* Configuration files */
 
-void load_config(void)
+const struct config_line Config_Lines[] = {
+	{ "Scaling",       &(config.scaling),                    0,          2,           },
+	{ "RemapH",        &(config.remap_mode[0]),    REMAP_MODE_NONE, REMAP_MODE_END-1, },
+	{ "RemapV",        &(config.remap_mode[1]),    REMAP_MODE_NONE, REMAP_MODE_END-1, },
+	{ "Volume",        &(config.volume),                     0,          5,           },
+	{ "BottonH_Y1",    &(keys_config[HC_H].buttons[HC_KEY_Y1]),    SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonH_Y2",    &(keys_config[HC_H].buttons[HC_KEY_Y2]),    SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonH_Y3",    &(keys_config[HC_H].buttons[HC_KEY_Y3]),    SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonH_Y4",    &(keys_config[HC_H].buttons[HC_KEY_Y4]),    SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonH_X1",    &(keys_config[HC_H].buttons[HC_KEY_X1]),    SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonH_X2",    &(keys_config[HC_H].buttons[HC_KEY_X2]),    SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonH_X3",    &(keys_config[HC_H].buttons[HC_KEY_X3]),    SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonH_X4",    &(keys_config[HC_H].buttons[HC_KEY_X4]),    SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonH_Start", &(keys_config[HC_H].buttons[HC_KEY_START]), SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonH_A",     &(keys_config[HC_H].buttons[HC_KEY_BTN_A]), SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonH_B",     &(keys_config[HC_H].buttons[HC_KEY_BTN_B]), SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonH_Remap", &(keys_config[HC_H].buttons[HC_KEY_REMAP]), SDLK_FIRST, SDLK_LAST-1, },
+	// { "BottonH_EMenu", &(keys_config[HC_H].buttons[HC_KEY_EMENU]), SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonV_Y1",    &(keys_config[HC_V].buttons[HC_KEY_Y1]),    SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonV_Y2",    &(keys_config[HC_V].buttons[HC_KEY_Y2]),    SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonV_Y3",    &(keys_config[HC_V].buttons[HC_KEY_Y3]),    SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonV_Y4",    &(keys_config[HC_V].buttons[HC_KEY_Y4]),    SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonV_X1",    &(keys_config[HC_V].buttons[HC_KEY_X1]),    SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonV_X2",    &(keys_config[HC_V].buttons[HC_KEY_X2]),    SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonV_X3",    &(keys_config[HC_V].buttons[HC_KEY_X3]),    SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonV_X4",    &(keys_config[HC_V].buttons[HC_KEY_X4]),    SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonV_Start", &(keys_config[HC_V].buttons[HC_KEY_START]), SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonV_A",     &(keys_config[HC_V].buttons[HC_KEY_BTN_A]), SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonV_B",     &(keys_config[HC_V].buttons[HC_KEY_BTN_B]), SDLK_FIRST, SDLK_LAST-1, },
+	{ "BottonV_Remap", &(keys_config[HC_V].buttons[HC_KEY_REMAP]), SDLK_FIRST, SDLK_LAST-1, },
+	// { "BottonV_EMenu", &(keys_config[HC_V].buttons[HC_KEY_EMENU]), SDLK_FIRST, SDLK_LAST-1, },
+	{ NULL,            NULL,                                       0,          0,           },
+};
+
+void default_config()
 {
-	uint32_t i, a;
-	char home_path[PATH_MAX], cfg_path[PATH_MAX];
+	/* Default profile */
+	config.custom = 0;
+	config.remap_mode[HC_H] = REMAP_MODE_HOLDY2X;
+	config.remap_mode[HC_V] = REMAP_MODE_ACTIVATE;
+	config.scaling = 0;
+	config.volume = 5;
+
+	/* Should work for landscape. They can always configure it themselves should they need portrait mode. */
+	memset(&keys_config, 0, sizeof(keys_config));
+#ifndef RS90
+	keys_config[HC_H].buttons[HC_KEY_Y1] = SDLK_UNKNOWN;
+	keys_config[HC_H].buttons[HC_KEY_Y2] = SDLK_UNKNOWN;
+	keys_config[HC_H].buttons[HC_KEY_Y3] = SDLK_UNKNOWN;
+	keys_config[HC_H].buttons[HC_KEY_Y4] = SDLK_UNKNOWN;
+	keys_config[HC_H].buttons[HC_KEY_X1] = SDLK_UP;
+	keys_config[HC_H].buttons[HC_KEY_X2] = SDLK_RIGHT;
+	keys_config[HC_H].buttons[HC_KEY_X3] = SDLK_DOWN;
+	keys_config[HC_H].buttons[HC_KEY_X4] = SDLK_LEFT;
+	keys_config[HC_H].buttons[HC_KEY_OPTION] = SDLK_ESCAPE;
+	keys_config[HC_H].buttons[HC_KEY_START] = SDLK_RETURN;
+	keys_config[HC_H].buttons[HC_KEY_BTN_A] = SDLK_LCTRL;
+	keys_config[HC_H].buttons[HC_KEY_BTN_B] = SDLK_LALT;
+
+	keys_config[HC_V].buttons[HC_KEY_Y1] = SDLK_LEFT;
+	keys_config[HC_V].buttons[HC_KEY_Y2] = SDLK_UP;
+	keys_config[HC_V].buttons[HC_KEY_Y3] = SDLK_RIGHT;
+	keys_config[HC_V].buttons[HC_KEY_Y4] = SDLK_DOWN;
+	keys_config[HC_V].buttons[HC_KEY_X1] = SDLK_LCTRL;
+	keys_config[HC_V].buttons[HC_KEY_X2] = SDLK_LALT;
+	keys_config[HC_V].buttons[HC_KEY_X3] = SDLK_LSHIFT;
+	keys_config[HC_V].buttons[HC_KEY_X4] = SDLK_SPACE;
+	keys_config[HC_V].buttons[HC_KEY_OPTION] = SDLK_ESCAPE;
+	keys_config[HC_V].buttons[HC_KEY_START] = SDLK_RETURN;
+	keys_config[HC_V].buttons[HC_KEY_BTN_A] = SDLK_UNKNOWN;
+	keys_config[HC_V].buttons[HC_KEY_BTN_B] = SDLK_UNKNOWN;
+#else
+	keys_config[HC_H].buttons[HC_KEY_Y1] = SDLK_UNKNOWN;
+	keys_config[HC_H].buttons[HC_KEY_Y2] = SDLK_UNKNOWN;
+	keys_config[HC_H].buttons[HC_KEY_Y3] = SDLK_UNKNOWN;
+	keys_config[HC_H].buttons[HC_KEY_Y4] = SDLK_UNKNOWN;
+	keys_config[HC_H].buttons[HC_KEY_X1] = SDLK_UP;
+	keys_config[HC_H].buttons[HC_KEY_X2] = SDLK_RIGHT;
+	keys_config[HC_H].buttons[HC_KEY_X3] = SDLK_DOWN;
+	keys_config[HC_H].buttons[HC_KEY_X4] = SDLK_LEFT;
+	keys_config[HC_H].buttons[HC_KEY_START] = SDLK_RETURN;
+	keys_config[HC_H].buttons[HC_KEY_BTN_A] = SDLK_LCTRL;
+	keys_config[HC_H].buttons[HC_KEY_BTN_B] = SDLK_LALT;
+	keys_config[HC_H].buttons[HC_KEY_REMAP] = SDLK_TAB;
+
+	keys_config[HC_V].buttons[HC_KEY_Y1] = SDLK_UP;
+	keys_config[HC_V].buttons[HC_KEY_Y2] = SDLK_RIGHT;
+	keys_config[HC_V].buttons[HC_KEY_Y3] = SDLK_DOWN;
+	keys_config[HC_V].buttons[HC_KEY_Y4] = SDLK_LEFT;
+	keys_config[HC_V].buttons[HC_KEY_X1] = SDLK_LALT;
+	keys_config[HC_V].buttons[HC_KEY_X2] = SDLK_LCTRL;
+	keys_config[HC_V].buttons[HC_KEY_X3] = SDLK_RETURN;
+	keys_config[HC_V].buttons[HC_KEY_X4] = SDLK_ESCAPE;
+	keys_config[HC_V].buttons[HC_KEY_START] = SDLK_BACKSPACE;
+	keys_config[HC_V].buttons[HC_KEY_BTN_A] = SDLK_UNKNOWN;
+	keys_config[HC_V].buttons[HC_KEY_BTN_B] = SDLK_UNKNOWN;
+	keys_config[HC_V].buttons[HC_KEY_REMAP] = SDLK_TAB;
+#endif
+	update_all_config();
+}
+
+int load_config(const char *gamepath)
+{
+	char path[PATH_MAX];
 	FILE* fp;
-	
-	snprintf(home_path, sizeof(home_path), "%s%s", PATH_DIRECTORY, SAVE_DIRECTORY);
-	snprintf(cfg_path, sizeof(cfg_path), "%sconfig.bin", home_path);
-	
-	if (access( home_path, F_OK ) == -1)
-	{
-		mkdir(home_path, 0755);
+	const struct config_line *cfg;
+	char line[CONFIG_LINE_MAX], *linep, *token1, *token2;
+	int state, value;
+	const char *cfgname;
+
+	if (gamepath) {
+		cfgname = strrchr(gamepath, '/');
+		cfgname = cfgname ? cfgname + 1 : gamepath;
+	} else {
+		cfgname = "oswan";
 	}
+
+	memset(path, 0, sizeof(path));
+	snprintf(path, sizeof(path) - 1, "%s%s", PATH_DIRECTORY, SAVE_DIRECTORY);
+	if (access(path, F_OK ) == -1) mkdir(path, 0755);
+	snprintf(path, sizeof(path) - 1, "%s%s%s.cfg", PATH_DIRECTORY, SAVE_DIRECTORY, cfgname);
+
+	if ((fp = fopen(path, "r")) == NULL) return 0;
 	
-	fp = fopen(cfg_path, "rb");
-	if (fp)
-	{
-		fread(&menu_oswan, sizeof(uint8_t), sizeof(menu_oswan), fp);
-		fread(&keys_config, sizeof(uint8_t), (14*2)*sizeof(uint32_t), fp);
-		fclose(fp);
-	}
-	else
-	{
-		/* Set default settings */
-		for (i=0;i<6;i++)
-		{
-			for (a=0;a<14;a++)
-			{
-				keys_config[i].buttons[a] = 0;
+	while (fgets(line, sizeof(line), fp) != NULL) {
+		state = 1;
+		token1 = NULL, token2 = NULL, linep = &line[0];
+		while (*linep && state && state != 7) {
+			switch (*linep) {
+			case '\0': /* Impossible? */
+				if (state <= 4) state = 0;
+				break;
+			case '#':
+				if (state <= 4) state = 0;
+				else *linep = '\0';
+				break;
+			case '\r':
+			case '\n':
+				if (state <= 4) state = 0;
+				else *(linep++) = '\0';
+				break;
+			case '=':
+				if (state++ != 3) state = 0;
+				else *(linep++) = '\0';
+				break;
+			case ' ':
+			case '\t':
+				*(linep++) = '\0';
+				break;
+			default:
+				switch (state){
+				case 1: token1 = linep++, state++; break;
+				case 4: token2 = linep++, state++; break;
+				case 2:
+				case 5: if (strchr(" \t=#\r\n", *(++linep))) state++; break;
+				default: state = 0;
+				}
 			}
 		}
-		
-		/* Default profile */
-		/* Should work for landscape. They can always configure it themselves should they need portrait mode. */
-#ifndef RS90
-		keys_config[HC_H].buttons[HC_KEY_Y1] = SDLK_UNKNOWN;
-		keys_config[HC_H].buttons[HC_KEY_Y2] = SDLK_UNKNOWN;
-		keys_config[HC_H].buttons[HC_KEY_Y3] = SDLK_UNKNOWN;
-		keys_config[HC_H].buttons[HC_KEY_Y4] = SDLK_UNKNOWN;
-		keys_config[HC_H].buttons[HC_KEY_X1] = SDLK_UP;
-		keys_config[HC_H].buttons[HC_KEY_X2] = SDLK_RIGHT;
-		keys_config[HC_H].buttons[HC_KEY_X3] = SDLK_DOWN;
-		keys_config[HC_H].buttons[HC_KEY_X4] = SDLK_LEFT;
-		keys_config[HC_H].buttons[HC_KEY_OPTION] = SDLK_ESCAPE;
-		keys_config[HC_H].buttons[HC_KEY_START] = SDLK_RETURN;
-		keys_config[HC_H].buttons[HC_KEY_BTN_A] = SDLK_LCTRL;
-		keys_config[HC_H].buttons[HC_KEY_BTN_B] = SDLK_LALT;
+		if (state <= 4) continue;
 
-		keys_config[HC_V].buttons[HC_KEY_Y1] = SDLK_LEFT;
-		keys_config[HC_V].buttons[HC_KEY_Y2] = SDLK_UP;
-		keys_config[HC_V].buttons[HC_KEY_Y3] = SDLK_RIGHT;
-		keys_config[HC_V].buttons[HC_KEY_Y4] = SDLK_DOWN;
-		keys_config[HC_V].buttons[HC_KEY_X1] = SDLK_LCTRL;
-		keys_config[HC_V].buttons[HC_KEY_X2] = SDLK_LALT;
-		keys_config[HC_V].buttons[HC_KEY_X3] = SDLK_LSHIFT;
-		keys_config[HC_V].buttons[HC_KEY_X4] = SDLK_SPACE;
-		keys_config[HC_V].buttons[HC_KEY_OPTION] = SDLK_ESCAPE;
-		keys_config[HC_V].buttons[HC_KEY_START] = SDLK_RETURN;
-		keys_config[HC_V].buttons[HC_KEY_BTN_A] = SDLK_UNKNOWN;
-		keys_config[HC_V].buttons[HC_KEY_BTN_B] = SDLK_UNKNOWN;
-#else
-		keys_config[HC_H].buttons[HC_KEY_Y1] = SDLK_UNKNOWN;
-		keys_config[HC_H].buttons[HC_KEY_Y2] = SDLK_UNKNOWN;
-		keys_config[HC_H].buttons[HC_KEY_Y3] = SDLK_UNKNOWN;
-		keys_config[HC_H].buttons[HC_KEY_Y4] = SDLK_UNKNOWN;
-		keys_config[HC_H].buttons[HC_KEY_X1] = SDLK_UP;
-		keys_config[HC_H].buttons[HC_KEY_X2] = SDLK_RIGHT;
-		keys_config[HC_H].buttons[HC_KEY_X3] = SDLK_DOWN;
-		keys_config[HC_H].buttons[HC_KEY_X4] = SDLK_LEFT;
-		keys_config[HC_H].buttons[HC_KEY_START] = SDLK_RETURN;
-		keys_config[HC_H].buttons[HC_KEY_BTN_A] = SDLK_LCTRL;
-		keys_config[HC_H].buttons[HC_KEY_BTN_B] = SDLK_LALT;
-		keys_config[HC_H].buttons[HC_KEY_REMAP] = SDLK_TAB;
-		keys_config[HC_H].buttons[HC_KEY_REMAPMODE] = REMAP_MODE_HOLDY2X;
-
-		keys_config[HC_V].buttons[HC_KEY_Y1] = SDLK_UP;
-		keys_config[HC_V].buttons[HC_KEY_Y2] = SDLK_RIGHT;
-		keys_config[HC_V].buttons[HC_KEY_Y3] = SDLK_DOWN;
-		keys_config[HC_V].buttons[HC_KEY_Y4] = SDLK_LEFT;
-		keys_config[HC_V].buttons[HC_KEY_X1] = SDLK_LALT;
-		keys_config[HC_V].buttons[HC_KEY_X2] = SDLK_LCTRL;
-		keys_config[HC_V].buttons[HC_KEY_X3] = SDLK_RETURN;
-		keys_config[HC_V].buttons[HC_KEY_X4] = SDLK_ESCAPE;
-		keys_config[HC_V].buttons[HC_KEY_START] = SDLK_BACKSPACE;
-		keys_config[HC_V].buttons[HC_KEY_BTN_A] = SDLK_UNKNOWN;
-		keys_config[HC_V].buttons[HC_KEY_BTN_B] = SDLK_UNKNOWN;
-		keys_config[HC_V].buttons[HC_KEY_REMAP] = SDLK_TAB;
-		keys_config[HC_V].buttons[HC_KEY_REMAPMODE] = REMAP_MODE_ACTIVATE;
-#endif
+		for (cfg = &Config_Lines[0]; cfg && cfg->name; cfg++) {
+			if (!(cfg->ref) || (cfg->min > cfg->max)) continue;
+			if (strcmp(cfg->name, token1)) continue;
+			value = strtol(token2, NULL, 0);
+			value = (value < cfg->min) ? cfg->min : ((value > cfg->max) ? cfg->max : value);
+			*(cfg->ref) = value;
+		}
 	}
+	fclose(fp);
+	update_all_config();
 
-	update_remap_config();
+	return 1;
 }
 
 
-void save_config(void)
+int save_config(const char *gamepath)
 {
-	char home_path[PATH_MAX], cfg_path[PATH_MAX];
+	char path[PATH_MAX];
 	FILE* fp;
+	const struct config_line *cfg;
+	const char *cfgname;
 
-	snprintf(home_path, sizeof(home_path), "%s%s", PATH_DIRECTORY, SAVE_DIRECTORY);
-	snprintf(cfg_path, sizeof(cfg_path), "%sconfig.bin", home_path);
-	
-	if (access( home_path, F_OK ) == -1)
-	{
-		mkdir(home_path, 0755);
+	if (gamepath) {
+		cfgname = strrchr(gamepath, '/');
+		cfgname = cfgname ? cfgname + 1 : gamepath;
+	} else {
+		cfgname = "oswan";
 	}
+
+	memset(path, 0, sizeof(path));
+	snprintf(path, sizeof(path) - 1, "%s%s%s.cfg", PATH_DIRECTORY, SAVE_DIRECTORY, cfgname);
+
+	if ((fp = fopen(path, "w")) == NULL) return 0;
 	
-	fp = fopen(cfg_path, "wb");
-	if (fp)
-	{
-		fwrite(&menu_oswan, sizeof(uint8_t), sizeof(menu_oswan), fp);
-		fwrite(&keys_config, sizeof(uint8_t), (14*2)*sizeof(uint32_t), fp);
-		fclose(fp);
+	fprintf(fp, "# Generated by Oswan+\n");
+	for (cfg = &Config_Lines[0]; cfg && cfg->name; cfg++) {
+		if (!(cfg->ref) || (cfg->min > cfg->max)) continue;
+		fprintf(fp, "%s = %d\n", cfg->name, (int)*(cfg->ref));
 	}
+	fclose(fp);
+
+	return 1;
 }
 
 #define COMBINE_MENU_KEYS(x, y) ((x) << 16 | (y))
@@ -862,7 +949,26 @@ int check_menu_keys(SDLKey key1, SDLKey key2)
 	return 1;
 }
 
-void update_remap_config()
+void update_all_config()
+{
+	update_volume_config();
+	update_key_config();
+}
+
+void update_volume_config()
+{
+	switch(config.volume) {
+		default: config.volume = 5; /* FALL THROUGH */
+		case 5:  lcd_icon_stat[LCD_INDEX__VOLUME] = LCD_ICON__VOLUME_L3; break;
+		case 4:  config.volume = 3; /* FALL THROUGH */
+		case 3:  lcd_icon_stat[LCD_INDEX__VOLUME] = LCD_ICON__VOLUME_L2; break;
+		case 2:  config.volume = 1; /* FALL THROUGH */
+		case 1:  lcd_icon_stat[LCD_INDEX__VOLUME] = LCD_ICON__VOLUME_L1; break;
+		case 0:  lcd_icon_stat[LCD_INDEX__VOLUME] = LCD_ICON__VOLUME_MUTE;
+	}
+}
+
+void update_key_config()
 {
 	int i, a;
 	uint32_t key;
@@ -872,7 +978,7 @@ void update_remap_config()
 		for (a = 0; a < HC_KEY_END; a++) {
 			if (a == HC_KEY_OPTION) continue;
 			key = keys_config[i].buttons[a];
-			switch(keys_config[i].buttons[HC_KEY_REMAPMODE]) {
+			switch(config.remap_mode[i]) {
 			default:
 			case REMAP_MODE_NONE:
 				break;
@@ -928,36 +1034,6 @@ void update_remap_config()
 			menu_key[i][0] = NULL;
 			menu_key[i][1] = NULL;
 		}
-	}
-}
-
-/* Save states */
-
-/* Save current state of game emulated	*/
-void Save_State(void) 
-{
-    char szFile[PATH_MAX];
-	
-	if (cartridge_IsLoaded()) 
-	{
-		m_Flag = GF_GAMERUNNING;
-		strcpy(szFile, gameName);
-		WsSaveState(szFile, menu_oswan.menu_state);
-		done_menu = 1;
-	}
-}
-
-/* Load current state of game emulated	*/
-void Load_State(void) 
-{
-    char szFile[PATH_MAX];
-	
-	if (cartridge_IsLoaded()) 
-	{
-		m_Flag = GF_GAMERUNNING;
-		strcpy(szFile, gameName);
-		WsLoadState(szFile, menu_oswan.menu_state);
-		done_menu = 1;
 	}
 }
 
