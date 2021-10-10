@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
 					}
 					
 				}
-				if (nextTick + 1000 < currentTick) nextTick = currentTick;
+				if (nextTick + interval * SKIP_RATE * 2 < currentTick) nextTick = currentTick;
 				else nextTick += interval;
 				#endif
 				WsRun();
