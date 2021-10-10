@@ -61,6 +61,7 @@ extern void Menu(void);
 extern void default_config();
 extern int load_config(const char *gamepath);
 extern int save_config(const char *gamepath);
+extern int del_config(const char *gamepath);
 extern void update_all_config();
 extern void update_key_config();
 extern void update_volume_config();

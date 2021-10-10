@@ -50,7 +50,7 @@ static void initSDL(void)
 
 static void exit_oswan()
 {
-	save_config(NULL);
+	// save_config(NULL); /* Manual save */
 	WsDeInit();
 	Cleanup_Sound();
 	Cleanup_Screen();
