@@ -6,11 +6,6 @@
 uint32_t WsInputGetState(void);
 void exit_button(void);
 
-struct hardcoded_keys
-{
-	uint32_t buttons[14];
-};
-
 enum hc_hvmode {
 	HC_H = 0,
 	HC_V,
@@ -30,9 +25,11 @@ enum hc_key {
 	HC_KEY_START,
 	HC_KEY_BTN_A,
 	HC_KEY_BTN_B,
-	HC_KEY_END,
+	HC_KEY_GAME_END,
 
-	HC_KEY_REMAP = HC_KEY_OPTION,
+	HC_KEY_REMAP = HC_KEY_GAME_END,
+	HC_KEY_EMENU,
+	HC_KEY_END,
 };
 
 enum remap_mode {
@@ -42,6 +39,11 @@ enum remap_mode {
 	REMAP_MODE_PRESSXY,
 	REMAP_MODE_ACTIVATE,
 	REMAP_MODE_END,
+};
+
+struct hardcoded_keys
+{
+	uint32_t buttons[HC_KEY_END];
 };
 
 extern struct hardcoded_keys keys_config[6];

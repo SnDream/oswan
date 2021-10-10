@@ -171,9 +171,9 @@ int main(int argc, char *argv[])
 				if (nextTick + 1000 < currentTick) nextTick = currentTick;
 				else nextTick += interval;
 				#endif
-				exit_button();
 				WsRun();
 				Sound_Update();
+				exit_button();
 				break;
 		}
 	}

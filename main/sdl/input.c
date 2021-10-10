@@ -30,9 +30,12 @@ void exit_button(void)
 	uint32_t key1, key2;
 	keys = SDL_GetKeyState(NULL);
 
-	if (menu_key[HVMode][0] == NULL || menu_key[HVMode][1] == NULL) {
+	if (menu_key[HVMode][0] == NULL) {
 		key1 = SDLK_ESCAPE;
 		key2 = SDLK_RETURN;
+	} else if (menu_key[HVMode][1] == NULL) {
+		key1 = *menu_key[HVMode][0];
+		key2 = *menu_key[HVMode][0];
 	} else {
 		key1 = *menu_key[HVMode][0];
 		key2 = *menu_key[HVMode][1];
@@ -46,7 +49,9 @@ void exit_button(void)
 	) 
 	{ 
 		m_Flag = GF_MAINUI;
+	#ifndef RS90
 		SetVideo(1);
+	#endif
 	}
 }
 

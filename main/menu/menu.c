@@ -290,9 +290,9 @@ struct menu Menu_Input = {
 	.menu_y			= 0,
 	.menu_init_call	= Menu_Input_MenuInit,
 	.menu_done_call	= NULL,
-	.item_num		= 13,
+	.item_num		= 14,
 	.item_w			= 264,
-	.item_h			= 10,
+	.item_h			= 9,
 	.item			= Menu_Input_Item,
 	.font_x			= FONT_X_AUTO,
 	.font_y			= FONT_Y_AUTO,
@@ -300,11 +300,14 @@ struct menu Menu_Input = {
 
 int Menu_Input_MenuInit(struct menu* self)
 {
-	int remap_mode, input_mode;
+	int remap_mode, type;
 
 	update_key_config();
 
-	remap_mode = self->item[12].conf_sel;
+	type = self->pitem->conf_sel;
+	if (type != HC_H && type != HC_V) return 0;
+
+	remap_mode = config.remap_mode[type];
 	switch (remap_mode) {
 	case REMAP_MODE_HOLDY2X:
 		print_string("Hold         :",
@@ -342,20 +345,26 @@ int Menu_Input_MenuInit(struct menu* self)
 		break;
 	}
 
-	print_string("+      : Emulator Menu",
-			TextWhite, 0, 6 * 8, 152, Surface_to_Draw_menu);
-	input_mode = self->pitem->conf_sel;
-	if (menu_key[input_mode][0] == NULL || menu_key[input_mode][1] == NULL) {
+	if (menu_key[type][0] == NULL) {
 		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(SDLK_ESCAPE)],
 				TextWhite, 0, 0,     152, Surface_to_Draw_menu);
+		print_string("+",
+				TextWhite, 0, 6 * 8, 152, Surface_to_Draw_menu);
 		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(SDLK_RETURN)],
 				TextWhite, 0, 7 * 8, 152, Surface_to_Draw_menu);
-	} else {
-		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(*menu_key[input_mode][0])],
+	} else if (menu_key[type][1] == NULL) {
+		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(*menu_key[type][0])],
 				TextWhite, 0, 0,     152, Surface_to_Draw_menu);
-		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(*menu_key[input_mode][1])],
+	} else {
+		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(*menu_key[type][0])],
+				TextWhite, 0, 0,     152, Surface_to_Draw_menu);
+		print_string("+",
+				TextWhite, 0, 6 * 8, 152, Surface_to_Draw_menu);
+		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(*menu_key[type][1])],
 				TextWhite, 0, 7 * 8, 152, Surface_to_Draw_menu);
 	}
+	print_string(": Emulator Menu",
+			TextWhite, 0, 13 * 8, 152, Surface_to_Draw_menu);
 }
 
 int			Menu_Input_Button_Sel(struct menu_item*);
@@ -379,17 +388,18 @@ int			Menu_Input_RemapMode_ConfDone(struct menu_item*);
 }
 
 struct menu_item Menu_Input_Item[] = {
-	MENU_INPUT_ITEM("Y1 (\030)"),
-	MENU_INPUT_ITEM("Y2 (\032)"),
-	MENU_INPUT_ITEM("Y3 (\031)"),
-	MENU_INPUT_ITEM("Y4 (\033)"),
-	MENU_INPUT_ITEM("X1 (\030)"),
-	MENU_INPUT_ITEM("X2 (\032)"),
-	MENU_INPUT_ITEM("X3 (\031)"),
-	MENU_INPUT_ITEM("X4 (\033)"),
-	MENU_INPUT_ITEM("START"    ),
-	MENU_INPUT_ITEM("BUTTON A" ),
-	MENU_INPUT_ITEM("BUTTON B" ),
+	MENU_INPUT_ITEM("WS Y1 (\030)"),
+	MENU_INPUT_ITEM("WS Y2 (\032)"),
+	MENU_INPUT_ITEM("WS Y3 (\031)"),
+	MENU_INPUT_ITEM("WS Y4 (\033)"),
+	MENU_INPUT_ITEM("WS X1 (\030)"),
+	MENU_INPUT_ITEM("WS X2 (\032)"),
+	MENU_INPUT_ITEM("WS X3 (\031)"),
+	MENU_INPUT_ITEM("WS X4 (\033)"),
+	MENU_INPUT_ITEM("WS START"    ),
+	MENU_INPUT_ITEM("WS BUTTON A" ),
+	MENU_INPUT_ITEM("WS BUTTON B" ),
+	MENU_INPUT_ITEM("Emu Menu"    ),
 	MENU_INPUT_ITEM("Remap Switch"),
 	{
 		.name			= "Remap Mode",
@@ -404,6 +414,27 @@ struct menu_item Menu_Input_Item[] = {
 	}
 };
 
+int Menu_Input_ItemSel2HCKey(int item_sel)
+{
+	switch (item_sel) {
+		case  0: item_sel = HC_KEY_Y1; break;
+		case  1: item_sel = HC_KEY_Y2; break;
+		case  2: item_sel = HC_KEY_Y3; break;
+		case  3: item_sel = HC_KEY_Y4; break;
+		case  4: item_sel = HC_KEY_X1; break;
+		case  5: item_sel = HC_KEY_X2; break;
+		case  6: item_sel = HC_KEY_X3; break;
+		case  7: item_sel = HC_KEY_X4; break;
+		case  8: item_sel = HC_KEY_START; break;
+		case  9: item_sel = HC_KEY_BTN_A; break;
+		case 10: item_sel = HC_KEY_BTN_B; break;
+		case 11: item_sel = HC_KEY_EMENU; break;
+		case 12: item_sel = HC_KEY_REMAP; break;
+		default: item_sel = -1;
+	}
+	return item_sel;
+}
+
 int Menu_Input_Button_Sel(struct menu_item* self)
 {
 	int type, item_sel;
@@ -412,13 +443,8 @@ int Menu_Input_Button_Sel(struct menu_item* self)
 	type = self->pmenu->pitem->conf_sel;
 	item_sel = self->pmenu->item_sel;
 	if (type != HC_H && type != HC_V) return 0;
+	item_sel = Menu_Input_ItemSel2HCKey(item_sel);
 	if (item_sel < 0 || item_sel >= HC_KEY_END) return 0;
-	switch (item_sel) {
-		case  8: item_sel = HC_KEY_START; break;
-		case  9: item_sel = HC_KEY_BTN_A; break;
-		case 10: item_sel = HC_KEY_BTN_B; break;
-		case 11: item_sel = HC_KEY_REMAP; break;
-	}
 
 	Clear_Menu();
 	print_text_center("Press a key for", 72 - 2);
@@ -453,13 +479,8 @@ int Menu_Input_Button_ConfInit(struct menu_item* self)
 	type = self->pmenu->pitem->conf_sel;
 	item_sel = self->pmenu->item_sel;
 	if (type != HC_H && type != HC_V) return 0;
+	item_sel = Menu_Input_ItemSel2HCKey(item_sel);
 	if (item_sel < 0 || item_sel >= HC_KEY_END) return 0;
-	switch (item_sel) {
-		case  8: item_sel = HC_KEY_START; break;
-		case  9: item_sel = HC_KEY_BTN_A; break;
-		case 10: item_sel = HC_KEY_BTN_B; break;
-		case 11: item_sel = HC_KEY_REMAP; break;
-	}
 
 	key = keys_config[type].buttons[item_sel];
 	self->conf_sel = SDLK2InputSel(key);
@@ -474,13 +495,8 @@ int Menu_Input_Button_ConfDone(struct menu_item* self)
 	type = self->pmenu->pitem->conf_sel;
 	item_sel = self->pmenu->item_sel;
 	if (type != HC_H && type != HC_V) return 0;
+	item_sel = Menu_Input_ItemSel2HCKey(item_sel);
 	if (item_sel < 0 || item_sel >= HC_KEY_END) return 0;
-	switch (item_sel) {
-		case  8: item_sel = HC_KEY_START; break;
-		case  9: item_sel = HC_KEY_BTN_A; break;
-		case 10: item_sel = HC_KEY_BTN_B; break;
-		case 11: item_sel = HC_KEY_REMAP; break;
-	}
 
 	key = InputSel2SDLK(self->conf_sel);
 	keys_config[type].buttons[item_sel] = key;
@@ -496,11 +512,10 @@ const char*	Menu_Input_RemapMode_ConfText[] = {
 };
 int Menu_Input_RemapMode_ConfInit(struct menu_item* self)
 {
-	int type, item_sel;
+	int type;
 	SDLKey key;
 
 	type = self->pmenu->pitem->conf_sel;
-	item_sel = self->pmenu->item_sel;
 	if (type != HC_H && type != HC_V) return 0;
 
 	key = config.remap_mode[type];
@@ -514,11 +529,10 @@ int Menu_Input_RemapMode_ConfInit(struct menu_item* self)
 
 int Menu_Input_RemapMode_ConfDone(struct menu_item* self)
 {
-	int type, item_sel;
+	int type;
 	SDLKey key;
 
 	type = self->pmenu->pitem->conf_sel;
-	item_sel = self->pmenu->item_sel;
 	if (type != HC_H && type != HC_V) return 0;
 
 	config.remap_mode[type] = self->conf_sel;
@@ -693,7 +707,9 @@ void Menu()
 
 	if (m_Flag == GF_MAINUI) m_Flag = GF_GAMERUNNING;
 
+	#ifndef RS90
 	SetVideo(config.scaling);
+	#endif
 
 	/* Clear the screen before going back to Game or exiting the emulator */
 	Clear_Screen();
@@ -702,37 +718,37 @@ void Menu()
 /* Configuration files */
 
 const struct config_line Config_Lines[] = {
-	{ "Scaling",       &(config.scaling),                    0,          2,           },
-	{ "RemapH",        &(config.remap_mode[0]),    REMAP_MODE_NONE, REMAP_MODE_END-1, },
-	{ "RemapV",        &(config.remap_mode[1]),    REMAP_MODE_NONE, REMAP_MODE_END-1, },
-	{ "Volume",        &(config.volume),                     0,          5,           },
-	{ "BottonH_Y1",    &(keys_config[HC_H].buttons[HC_KEY_Y1]),    SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonH_Y2",    &(keys_config[HC_H].buttons[HC_KEY_Y2]),    SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonH_Y3",    &(keys_config[HC_H].buttons[HC_KEY_Y3]),    SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonH_Y4",    &(keys_config[HC_H].buttons[HC_KEY_Y4]),    SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonH_X1",    &(keys_config[HC_H].buttons[HC_KEY_X1]),    SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonH_X2",    &(keys_config[HC_H].buttons[HC_KEY_X2]),    SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonH_X3",    &(keys_config[HC_H].buttons[HC_KEY_X3]),    SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonH_X4",    &(keys_config[HC_H].buttons[HC_KEY_X4]),    SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonH_Start", &(keys_config[HC_H].buttons[HC_KEY_START]), SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonH_A",     &(keys_config[HC_H].buttons[HC_KEY_BTN_A]), SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonH_B",     &(keys_config[HC_H].buttons[HC_KEY_BTN_B]), SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonH_Remap", &(keys_config[HC_H].buttons[HC_KEY_REMAP]), SDLK_FIRST, SDLK_LAST-1, },
-	// { "BottonH_EMenu", &(keys_config[HC_H].buttons[HC_KEY_EMENU]), SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonV_Y1",    &(keys_config[HC_V].buttons[HC_KEY_Y1]),    SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonV_Y2",    &(keys_config[HC_V].buttons[HC_KEY_Y2]),    SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonV_Y3",    &(keys_config[HC_V].buttons[HC_KEY_Y3]),    SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonV_Y4",    &(keys_config[HC_V].buttons[HC_KEY_Y4]),    SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonV_X1",    &(keys_config[HC_V].buttons[HC_KEY_X1]),    SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonV_X2",    &(keys_config[HC_V].buttons[HC_KEY_X2]),    SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonV_X3",    &(keys_config[HC_V].buttons[HC_KEY_X3]),    SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonV_X4",    &(keys_config[HC_V].buttons[HC_KEY_X4]),    SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonV_Start", &(keys_config[HC_V].buttons[HC_KEY_START]), SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonV_A",     &(keys_config[HC_V].buttons[HC_KEY_BTN_A]), SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonV_B",     &(keys_config[HC_V].buttons[HC_KEY_BTN_B]), SDLK_FIRST, SDLK_LAST-1, },
-	{ "BottonV_Remap", &(keys_config[HC_V].buttons[HC_KEY_REMAP]), SDLK_FIRST, SDLK_LAST-1, },
-	// { "BottonV_EMenu", &(keys_config[HC_V].buttons[HC_KEY_EMENU]), SDLK_FIRST, SDLK_LAST-1, },
-	{ NULL,            NULL,                                       0,          0,           },
+	{ "Scaling",       &(config.scaling),                          0,          2,         },
+	{ "RemapH",        &(config.remap_mode[0]),        REMAP_MODE_NONE, REMAP_MODE_END-1, },
+	{ "RemapV",        &(config.remap_mode[1]),        REMAP_MODE_NONE, REMAP_MODE_END-1, },
+	{ "Volume",        &(config.volume),                           0,          5,         },
+	{ "ButtonH_Y1",    &(keys_config[HC_H].buttons[HC_KEY_Y1]),    SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonH_Y2",    &(keys_config[HC_H].buttons[HC_KEY_Y2]),    SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonH_Y3",    &(keys_config[HC_H].buttons[HC_KEY_Y3]),    SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonH_Y4",    &(keys_config[HC_H].buttons[HC_KEY_Y4]),    SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonH_X1",    &(keys_config[HC_H].buttons[HC_KEY_X1]),    SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonH_X2",    &(keys_config[HC_H].buttons[HC_KEY_X2]),    SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonH_X3",    &(keys_config[HC_H].buttons[HC_KEY_X3]),    SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonH_X4",    &(keys_config[HC_H].buttons[HC_KEY_X4]),    SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonH_Start", &(keys_config[HC_H].buttons[HC_KEY_START]), SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonH_A",     &(keys_config[HC_H].buttons[HC_KEY_BTN_A]), SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonH_B",     &(keys_config[HC_H].buttons[HC_KEY_BTN_B]), SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonH_Remap", &(keys_config[HC_H].buttons[HC_KEY_REMAP]), SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonH_EMenu", &(keys_config[HC_H].buttons[HC_KEY_EMENU]), SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonV_Y1",    &(keys_config[HC_V].buttons[HC_KEY_Y1]),    SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonV_Y2",    &(keys_config[HC_V].buttons[HC_KEY_Y2]),    SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonV_Y3",    &(keys_config[HC_V].buttons[HC_KEY_Y3]),    SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonV_Y4",    &(keys_config[HC_V].buttons[HC_KEY_Y4]),    SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonV_X1",    &(keys_config[HC_V].buttons[HC_KEY_X1]),    SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonV_X2",    &(keys_config[HC_V].buttons[HC_KEY_X2]),    SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonV_X3",    &(keys_config[HC_V].buttons[HC_KEY_X3]),    SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonV_X4",    &(keys_config[HC_V].buttons[HC_KEY_X4]),    SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonV_Start", &(keys_config[HC_V].buttons[HC_KEY_START]), SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonV_A",     &(keys_config[HC_V].buttons[HC_KEY_BTN_A]), SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonV_B",     &(keys_config[HC_V].buttons[HC_KEY_BTN_B]), SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonV_Remap", &(keys_config[HC_V].buttons[HC_KEY_REMAP]), SDLK_FIRST, SDLK_LAST, },
+	{ "ButtonV_EMenu", &(keys_config[HC_V].buttons[HC_KEY_EMENU]), SDLK_FIRST, SDLK_LAST, },
+	{ NULL,            NULL,                                       0,          0,         },
 };
 
 void default_config()
@@ -785,6 +801,7 @@ void default_config()
 	keys_config[HC_H].buttons[HC_KEY_BTN_A] = SDLK_LCTRL;
 	keys_config[HC_H].buttons[HC_KEY_BTN_B] = SDLK_LALT;
 	keys_config[HC_H].buttons[HC_KEY_REMAP] = SDLK_TAB;
+	keys_config[HC_H].buttons[HC_KEY_EMENU] = SDLK_ESCAPE;
 
 	keys_config[HC_V].buttons[HC_KEY_Y1] = SDLK_UP;
 	keys_config[HC_V].buttons[HC_KEY_Y2] = SDLK_RIGHT;
@@ -798,6 +815,7 @@ void default_config()
 	keys_config[HC_V].buttons[HC_KEY_BTN_A] = SDLK_UNKNOWN;
 	keys_config[HC_V].buttons[HC_KEY_BTN_B] = SDLK_UNKNOWN;
 	keys_config[HC_V].buttons[HC_KEY_REMAP] = SDLK_TAB;
+	keys_config[HC_V].buttons[HC_KEY_EMENU] = SDLK_UNKNOWN;
 #endif
 	update_all_config();
 }
@@ -907,10 +925,10 @@ int save_config(const char *gamepath)
 }
 
 #define COMBINE_MENU_KEYS(x, y) ((x) << 16 | (y))
-int check_menu_keys(SDLKey key1, SDLKey key2)
+int check_menu_keys(SDLKey key1, SDLKey key2, int keys)
 {
 	int i;
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < keys; i++) {
 		switch (i ? key2 : key1) {
 #ifndef RS90
 		case SDLK_LSHIFT:
@@ -934,12 +952,14 @@ int check_menu_keys(SDLKey key1, SDLKey key2)
 		}
 	}
 
+	if (keys == 1) return 1;
+
 	switch (COMBINE_MENU_KEYS(key1, key2)) {
 	case COMBINE_MENU_KEYS(SDLK_UP, SDLK_DOWN):
 	case COMBINE_MENU_KEYS(SDLK_DOWN, SDLK_UP):
 	case COMBINE_MENU_KEYS(SDLK_LEFT, SDLK_RIGHT):
 	case COMBINE_MENU_KEYS(SDLK_RIGHT, SDLK_LEFT):
-#if 0 /* In some cases L + Select works? */
+#if 1 /* In some cases L + Select works? */
 	case COMBINE_MENU_KEYS(SDLK_ESCAPE, SDLK_TAB):
 	case COMBINE_MENU_KEYS(SDLK_TAB, SDLK_ESCAPE):
 #endif
@@ -1027,7 +1047,10 @@ void update_key_config()
 		#endif
 
 		/* emu menu keys */
-		if (check_menu_keys(keys_config[i].buttons[HC_KEY_REMAP], keys_config[i].buttons[HC_KEY_START])) {
+		if (check_menu_keys(keys_config[i].buttons[HC_KEY_EMENU], SDLK_UNKNOWN, 1)) {
+			menu_key[i][0] = &keys_config[i].buttons[HC_KEY_EMENU];
+			menu_key[i][1] = NULL;
+		} else if (check_menu_keys(keys_config[i].buttons[HC_KEY_REMAP], keys_config[i].buttons[HC_KEY_START], 2)) {
 			menu_key[i][0] = &keys_config[i].buttons[HC_KEY_REMAP];
 			menu_key[i][1] = &keys_config[i].buttons[HC_KEY_START];
 		} else {
