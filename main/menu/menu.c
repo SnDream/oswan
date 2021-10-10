@@ -330,7 +330,7 @@ int Menu_Input_MenuInit(struct menu* self)
 	case REMAP_MODE_HOLDY2X:
 		print_string("Hold         :",
 				TextWhite, 0,     0, 132, Surface_to_Draw_menu);
-		print_string(self->item[11].conf_text[self->item[11].conf_sel],
+		print_string(self->item[12].conf_text[self->item[12].conf_sel],
 				TextWhite, 0, 6 * 8, 132, Surface_to_Draw_menu);
 		print_string("Press X1/2/3/4 as Y1/2/3/4",
 				TextWhite, 0, 4 * 8, 142, Surface_to_Draw_menu);
@@ -338,7 +338,7 @@ int Menu_Input_MenuInit(struct menu* self)
 	case REMAP_MODE_HOLDX2Y:
 		print_string("Hold         :",
 				TextWhite, 0,     0, 132, Surface_to_Draw_menu);
-		print_string(self->item[11].conf_text[self->item[11].conf_sel],
+		print_string(self->item[12].conf_text[self->item[12].conf_sel],
 				TextWhite, 0, 6 * 8, 132, Surface_to_Draw_menu);
 		print_string("Press Y1/2/3/4 as X1/2/3/4",
 				TextWhite, 0, 4 * 8, 142, Surface_to_Draw_menu);
@@ -346,7 +346,7 @@ int Menu_Input_MenuInit(struct menu* self)
 	case REMAP_MODE_PRESSXY:
 		print_string("Press        :",
 				TextWhite, 0,     0, 132, Surface_to_Draw_menu);
-		print_string(self->item[11].conf_text[self->item[11].conf_sel],
+		print_string(self->item[12].conf_text[self->item[12].conf_sel],
 				TextWhite, 0, 6 * 8, 132, Surface_to_Draw_menu);
 		print_string("Swap X1/2/3/4 and Y1/2/3/4",
 				TextWhite, 0, 4 * 8, 142, Surface_to_Draw_menu);
@@ -354,11 +354,11 @@ int Menu_Input_MenuInit(struct menu* self)
 	case REMAP_MODE_ACTIVATE:
 		print_string("Press        : START\035A\035B",
 				TextWhite, 0,     0, 132, Surface_to_Draw_menu);
-		print_string(self->item[11].conf_text[self->item[11].conf_sel],
+		print_string(self->item[12].conf_text[self->item[12].conf_sel],
 				TextWhite, 0, 6 * 8, 132, Surface_to_Draw_menu);
 		print_string("Press        as Activation",
 				TextWhite, 0, 4 * 8, 142, Surface_to_Draw_menu);
-		print_string(self->item[11].conf_text[self->item[8].conf_sel],
+		print_string(self->item[8].conf_text[self->item[8].conf_sel],
 				TextWhite, 0,10 * 8, 142, Surface_to_Draw_menu);
 		break;
 	}
