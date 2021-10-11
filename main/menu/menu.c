@@ -120,8 +120,6 @@ int			Menu_Config_ConfInit(struct menu_item* self);
 int			Menu_Config_Sel(struct menu_item* self);
 
 int			Menu_Reset_Sel(struct menu_item* self);
-const char*	Menu_Reset_ConfText[];
-int			Menu_Reset_ConfInit(struct menu_item* self);
 
 int			Menu_Exit_Sel(struct menu_item* self);
 
@@ -200,11 +198,11 @@ struct menu_item Menu_Main_Item[] = {
 		.name			= "Reset",
 		.sel_call		= Menu_Reset_Sel,
 		.sub_menu		= NULL,
-		.conf_num		= 2,
+		.conf_num		= 0,
 		.conf_x			= 120,
 		.conf_y			= 0,
-		.conf_text		= Menu_Reset_ConfText,
-		.conf_init_call	= Menu_Reset_ConfInit,
+		.conf_text		= NULL,
+		.conf_init_call	= NULL,
 		.conf_done_call	= NULL,
 	}, {
 		.name			= "Exit",
@@ -223,20 +221,40 @@ struct menu_item Menu_Main_Item[] = {
 
 int Menu_Continue_Sel(struct menu_item* self)
 {
+	SDL_Event event;
 	self->pmenu->menu_done = 1;
+	do {
+		SDL_WaitEvent(&event);
+	} while (event.type != SDL_KEYUP);
 }
 
 /* Save/Load State */
 
 int Menu_Load_State_Sel(struct menu_item* self)
 {
+	SDL_Event event;
 	if (!cartridge_IsLoaded()) return 0;
-	if (WsLoadState(gameName, self->conf_sel) == 0) self->pmenu->menu_done = 1;
+	if (WsLoadState(gameName, self->conf_sel) != 0) {
+		Clear_Menu();
+		print_text_center("Load state failed!", 76);
+		Update_Screen();
+	} else self->pmenu->menu_done = 1;
+	do {
+		SDL_WaitEvent(&event);
+	} while (event.type != SDL_KEYUP);
 }
 int Menu_Save_State_Sel(struct menu_item* self)
 {
+	SDL_Event event;
 	if (!cartridge_IsLoaded()) return 0;
-	if (WsSaveState(gameName, self->conf_sel) == 0) self->pmenu->menu_done = 1;
+	if (WsSaveState(gameName, self->conf_sel) != 0) {
+		Clear_Menu();
+		print_text_center("Save state failed!", 76);
+		Update_Screen();
+	} else self->pmenu->menu_done = 1;
+	do {
+		SDL_WaitEvent(&event);
+	} while (event.type != SDL_KEYUP);
 }
 const char* Menu_State_ConfText[] = {
 	"0", "1", "2", "3", "4",
@@ -622,10 +640,10 @@ int Menu_Config_Sel(struct menu_item* self)
 		if (ret) config.custom = 1;
 		/* FALL THROUGH */
 	case 0:
-		print_text_center(ret ? "Save config success!" : "Save config fail!", 72);
+		print_text_center(ret ? "Save config success!" : "Save config failed!", 76);
 		break;
 	case 2:
-		print_text_center(ret ? "Delete config success!" : "Delete config fail!", 72);
+		print_text_center(ret ? "Delete config success!" : "Delete config failed!", 76);
 		if (!ret) break;
 		default_config();
 		load_config(NULL);
@@ -650,22 +668,24 @@ int Menu_Config_Sel(struct menu_item* self)
 
 int Menu_Reset_Sel(struct menu_item* self)
 {
-	if (self->conf_sel != 1) return 0;
+	SDL_Event event;
+	do {
+		SDL_WaitEvent(&event);
+		if (event.type == SDL_KEYDOWN) return 0;
+	} while (event.type != SDL_KEYUP);
 	WsReset();
 	self->pmenu->menu_done = 1;
-}
-const char* Menu_Reset_ConfText[] = {
-	"No", "Confirm",
-};
-int Menu_Reset_ConfInit(struct menu_item* self)
-{
-	self->conf_sel = 0;
 }
 
 /* Exit */
 
 int Menu_Exit_Sel(struct menu_item* self)
 {
+	SDL_Event event;
+	do {
+		SDL_WaitEvent(&event);
+		if (event.type == SDL_KEYDOWN) return 0;
+	} while (event.type != SDL_KEYUP);
 	m_Flag = GF_GAMEQUIT;
 	self->pmenu->menu_done = 1;
 }
