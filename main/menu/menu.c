@@ -185,7 +185,7 @@ struct menu_item Menu_Main_Item[] = {
 		.conf_init_call	= Menu_Volume_ConfInit,
 		.conf_done_call	= Menu_Volume_ConfDone,
 	}, {
-		.name			= "Config",
+		.name			= "Config File",
 		.sel_call		= Menu_Config_Sel,
 		.sub_menu		= NULL,
 		.conf_num		= 3,
