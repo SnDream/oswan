@@ -5,6 +5,12 @@ Oswan+ is a fork of Gameblabla's Oswan, aimed at a better experience on the RS-9
 
 This fork tries to improve the speed, supports large ROMs (4M+), simple LCD icon emulation, and some other features.
 
+The key into the emulator menu:
+
+First, "Emu Menu" (if configured). Second, "Remap Switch" + "WS START" (if the combination is legal). Finally, Select + Start key.
+
+Press Select (Horizontal) / L + R (Vertical) into emulator menu in default.
+
 Gameblabla's Oswan
 =======================
 
