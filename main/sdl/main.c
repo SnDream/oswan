@@ -19,8 +19,7 @@ struct config config;
 uint32_t m_Flag;
 // static long interval;
 #define interval (1000 / 75)
-static long nextTick, lastTick = 0, newTick, currentTick;
-static long skipTick = INT32_MIN;
+static long nextTick, currentTick;
 static int32_t FPS = 60; 
 static int32_t pastFPS = 0; 
 char gameName[512];
@@ -105,6 +104,7 @@ int main(int argc, char *argv[])
 #endif
 		snprintf(gameName, sizeof(gameName) ,"%s", argv[1]);
 		config.custom = load_config(gameName) ? 1 : 0;
+		Pause_Sound();
 		m_Flag = GF_GAMEINIT;
 		game_alreadyloaded = 1;
 	}
@@ -124,8 +124,6 @@ int main(int argc, char *argv[])
 				nextTick = SDL_GetTicks() + interval;
 				#endif
 				FrameSkip = 0;
-				lastTick = SDL_GetTicks();
-				skipTick = INT32_MIN;
 				break;
 
 			case GF_GAMEINIT:
@@ -133,9 +131,8 @@ int main(int argc, char *argv[])
 				{
 					WsInit();
 					m_Flag = GF_GAMERUNNING;
-					Resume_Sound();
+					if (config.volume) Resume_Sound();
 					game_alreadyloaded = 1;
-					lastTick = SDL_GetTicks();
 					#ifndef NO_WAIT
 					/* Init timing */
 					// interval = 1000 / 75; // (1.0f / 60) * 1000000;
@@ -153,21 +150,14 @@ int main(int argc, char *argv[])
 		
 			case GF_GAMERUNNING:	
 				#ifndef NO_WAIT
-				currentTick = SDL_GetTicks();
 				 #ifdef FRAMESKIP
-				if (nextTick <= currentTick) {
-					if (FrameSkip++ > SKIP_RATE) FrameSkip = 0;
-				} else {
+				if (nextTick > currentTick) {
+					do { SDL_Delay(1); } while (nextTick > (currentTick = SDL_GetTicks()));
 					FrameSkip = 0;
+				} else if (FrameSkip++ > SKIP_RATE) FrameSkip = 0;
 				 #else
-				{
+				while (nextTick > (currentTick = SDL_GetTicks())) SDL_Delay(1);
 				 #endif
-					while (nextTick > currentTick) {
-						SDL_Delay(1);
-						currentTick = SDL_GetTicks();
-					}
-					
-				}
 				if (nextTick + interval * SKIP_RATE * 2 < currentTick) nextTick = currentTick;
 				else nextTick += interval;
 				#endif
