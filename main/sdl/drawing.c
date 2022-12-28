@@ -18,7 +18,7 @@ void SetVideo(uint8_t mode)
 	if (!menuscreen) menuscreen = SDL_CreateRGBSurface(SDL_SWSURFACE, MENU_SCREEN_WIDTH, MENU_SCREEN_HEIGHT, BITDEPTH_OSWAN, 0,0,0,0);
 	
 	#ifndef RS90
-	if (!ws_backbuffer) ws_backbuffer = SDL_CreateRGBSurface(SDL_SWSURFACE, 240, 144, BITDEPTH_OSWAN, 0,0,0,0); */
+	if (!ws_backbuffer) ws_backbuffer = SDL_CreateRGBSurface(SDL_SWSURFACE, 240, 144, BITDEPTH_OSWAN, 0,0,0,0);
 	
 	FrameBuffer = ws_backbuffer->pixels;
 	#else
@@ -156,34 +156,30 @@ void screen_draw(void)
 			break;
 		}
 	}
-	*/
 
 	#else
-	 #ifndef SHOW_LCD_ICON
 	/* RefreshLine sometimes draws outside the border */
-	uint16_t *pp = actualScreen->pixels + (232 + 7 * 240) * sizeof(uint16_t);
+	uint32_t *pp = (uint32_t *)(FrameBuffer - 8 * sizeof(uint16_t));
 	for (int y = 0 ; y < 145; y++) {
-		for (int c = 0; c < 16; c++) {
+		for (int c = 0; c < 16 / 2; c++) {
 			*(pp++) = 0x0;
 		}
-		pp += 224;
+		pp += 224 / 2;
 	}
-	 #else
-	uint16_t *pp, *is;
-	pp = actualScreen->pixels + (config.scaling ? 8 * 240 + 0 : 8 * 240 - 4) * sizeof(uint16_t);
-	for (int y = 0 ; y < 144 ; y++) {
-		memset(pp, 0x0, sizeof(uint16_t) * 8);
-		pp += 240;
-	}
-	pp = actualScreen->pixels + (config.scaling ? 8 * 240 + 232 : 8 * 240 + 228) * sizeof(uint16_t);
-	for (int i = 0 ; i < LCD_INDEX__END; i++) {
-		is = &lcd_icon_data[config.scaling != 2 ? lcd_icon_stat[i] * ICON_DATA_U16SIZE : LCD_ICON__BLANK];
-		for (int y = 0; y < ICON_DATA_LINE_COUNT; y++) {
-			memcpy(pp, is, ICON_DATA_LINE_U16SIZE * sizeof(uint16_t));
-			pp += 240;
-			is += ICON_DATA_LINE_U16SIZE;
+	 #ifdef SHOW_LCD_ICON
+	if (config.scaling != 2) {
+		pp = (uint32_t *) (FrameBuffer + 232 * sizeof(uint16_t));
+		for (int i = 0 ; i < LCD_INDEX__END; i++) {
+			uint32_t * is = (uint32_t *) (&lcd_icon_data[lcd_icon_stat[i] * ICON_DATA_U16SIZE]);
+			for (int y = 0; y < ICON_DATA_LINE_COUNT; y++) {
+				for (int c = 0; c < 16 / 4; c++) {
+					*(pp++) = *(is++);
+				}
+				pp += 232 / 2;
+			}
 		}
 	}
+
 	 #endif
 	#endif
 	Update_Screen();
