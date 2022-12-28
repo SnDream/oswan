@@ -71,8 +71,8 @@ int					Menu_Main_Init(struct menu*);
 struct menu_item	Menu_Main_Item[];
 
 struct menu Menu_Main = {
-	.menu_x			= 0,
-	.menu_y			= 24,
+	.menu_x			= (MENU_SCREEN_WIDTH - 240) / 2,
+	.menu_y			= (MENU_SCREEN_HEIGHT - 160) / 2 + 24,
 	.menu_init_call	= Menu_Main_Init,
 	.menu_done_call	= NULL,
 	.item_num		= 9,
@@ -85,13 +85,13 @@ struct menu Menu_Main = {
 
 int Menu_Main_Init(struct menu* self)
 {
-#ifndef RS90
+#if !defined(RS90) && !defined(RG99)
 	print_text_center("Gameblabla's Oswan", 6);
 #else
 	print_text_center("Oswan+", 6);
 	if (config.custom) {
-		print_string("Custom", TextWhite, 0, 240 - 6 * 8, 0, Surface_to_Draw_menu);
-		print_string("Config", TextWhite, 0, 240 - 6 * 8, 8, Surface_to_Draw_menu);
+		print_string("Custom", TextWhite, 0, self->menu_x + 240 - 6 * 8, 0, Surface_to_Draw_menu);
+		print_string("Config", TextWhite, 0, self->menu_x + 240 - 6 * 8, 8, Surface_to_Draw_menu);
 	}
 #endif
 }
@@ -276,15 +276,25 @@ int Menu_State_ConfDone(struct menu_item* self)
 /* Scaling */
 
 const char* Menu_Scaling_ConfText[] = {
-#ifndef RS90
+#if !defined(RS90) && !defined(RG99)
 	"Native",
 	"Fullscreen",
 	"Keep Aspect",
-#else /* Compatible with upstream */
+#elif defined(RG99) /* Compatible with upstream */
  #ifndef SHOW_LCD_ICON
 	"Native",
-	"Still Native",
-	"Always Native",
+	"Hardware",
+	"Unused 1",
+ #else
+	"Native",
+	"Hardware",
+	"Hardware w/o Icon",
+ #endif
+#elif defined(RS90)
+ #ifndef SHOW_LCD_ICON
+	"Native",
+	"Unused 1",
+	"Unused 2",
  #else
 	"Native",
 	"Native Center",
@@ -322,8 +332,8 @@ struct menu_item	Menu_Input_Item[];
 const char*			Menu_Input_Button_ConfText[];
 
 struct menu Menu_Input = {
-	.menu_x			= 0,
-	.menu_y			= 0,
+	.menu_x			= (MENU_SCREEN_WIDTH - 240) / 2,
+	.menu_y			= (MENU_SCREEN_HEIGHT - 160) / 2,
 	.menu_init_call	= Menu_Input_MenuInit,
 	.menu_done_call	= NULL,
 	.item_num		= 14,
@@ -347,60 +357,60 @@ int Menu_Input_MenuInit(struct menu* self)
 	switch (remap_mode) {
 	case REMAP_MODE_HOLDY2X:
 		print_string("Hold         :",
-				TextWhite, 0,     0, 132, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x +     0, self->menu_y + 132, Surface_to_Draw_menu);
 		print_string(self->item[12].conf_text[self->item[12].conf_sel],
-				TextWhite, 0, 6 * 8, 132, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x + 6 * 8, self->menu_y + 132, Surface_to_Draw_menu);
 		print_string("Press X1/2/3/4 as Y1/2/3/4",
-				TextWhite, 0, 4 * 8, 142, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x + 4 * 8, self->menu_y + 142, Surface_to_Draw_menu);
 		break;
 	case REMAP_MODE_HOLDX2Y:
 		print_string("Hold         :",
-				TextWhite, 0,     0, 132, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x +     0, self->menu_y + 132, Surface_to_Draw_menu);
 		print_string(self->item[12].conf_text[self->item[12].conf_sel],
-				TextWhite, 0, 6 * 8, 132, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x + 6 * 8, self->menu_y + 132, Surface_to_Draw_menu);
 		print_string("Press Y1/2/3/4 as X1/2/3/4",
-				TextWhite, 0, 4 * 8, 142, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x + 4 * 8, self->menu_y + 142, Surface_to_Draw_menu);
 		break;
 	case REMAP_MODE_PRESSXY:
 		print_string("Press        :",
-				TextWhite, 0,     0, 132, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x +     0, self->menu_y + 132, Surface_to_Draw_menu);
 		print_string(self->item[12].conf_text[self->item[12].conf_sel],
-				TextWhite, 0, 6 * 8, 132, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x + 6 * 8, self->menu_y + 132, Surface_to_Draw_menu);
 		print_string("Swap X1/2/3/4 and Y1/2/3/4",
-				TextWhite, 0, 4 * 8, 142, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x + 4 * 8, self->menu_y + 142, Surface_to_Draw_menu);
 		break;
 	case REMAP_MODE_ACTIVATE:
 		print_string("Press        : START\035A\035B",
-				TextWhite, 0,     0, 132, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x +     0, self->menu_y + 132, Surface_to_Draw_menu);
 		print_string(self->item[12].conf_text[self->item[12].conf_sel],
-				TextWhite, 0, 6 * 8, 132, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x + 6 * 8, self->menu_y + 132, Surface_to_Draw_menu);
 		print_string("Press        as Activation",
-				TextWhite, 0, 4 * 8, 142, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x + 4 * 8, self->menu_y + 142, Surface_to_Draw_menu);
 		print_string(self->item[8].conf_text[self->item[8].conf_sel],
-				TextWhite, 0,10 * 8, 142, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x +10 * 8, self->menu_y + 142, Surface_to_Draw_menu);
 		break;
 	}
 
 	if (menu_key[type][0] == NULL) {
 		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(SDLK_ESCAPE)],
-				TextWhite, 0, 0,     152, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x +     0, self->menu_y + 152, Surface_to_Draw_menu);
 		print_string("+",
-				TextWhite, 0, 6 * 8, 152, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x + 6 * 8, self->menu_y + 152, Surface_to_Draw_menu);
 		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(SDLK_RETURN)],
-				TextWhite, 0, 7 * 8, 152, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x + 7 * 8, self->menu_y + 152, Surface_to_Draw_menu);
 	} else if (menu_key[type][1] == NULL) {
 		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(*menu_key[type][0])],
-				TextWhite, 0, 0,     152, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x +     0, self->menu_y + 152, Surface_to_Draw_menu);
 	} else {
 		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(*menu_key[type][0])],
-				TextWhite, 0, 0,     152, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x +     0, self->menu_y + 152, Surface_to_Draw_menu);
 		print_string("+",
-				TextWhite, 0, 6 * 8, 152, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x + 6 * 8, self->menu_y + 152, Surface_to_Draw_menu);
 		print_string(Menu_Input_Button_ConfText[SDLK2InputSel(*menu_key[type][1])],
-				TextWhite, 0, 7 * 8, 152, Surface_to_Draw_menu);
+				TextWhite, 0, self->menu_x + 7 * 8, self->menu_y + 152, Surface_to_Draw_menu);
 	}
 	print_string(": Emulator Menu",
-			TextWhite, 0, 13 * 8, 152, Surface_to_Draw_menu);
+			TextWhite, 0, self->menu_x + 13 * 8, self->menu_y + 152, Surface_to_Draw_menu);
 }
 
 int			Menu_Input_Button_Sel(struct menu_item*);
@@ -851,7 +861,11 @@ void default_config()
 	/* Default profile */
 	config.custom = 0;
 	config.remap_mode[HC_H] = REMAP_MODE_HOLDY2X;
+#ifndef RS90
+	config.remap_mode[HC_V] = REMAP_MODE_NONE;
+#else
 	config.remap_mode[HC_V] = REMAP_MODE_ACTIVATE;
+#endif
 	config.scaling = 0;
 	config.volume = 5;
 
@@ -866,10 +880,11 @@ void default_config()
 	keys_config[HC_H].buttons[HC_KEY_X2] = SDLK_RIGHT;
 	keys_config[HC_H].buttons[HC_KEY_X3] = SDLK_DOWN;
 	keys_config[HC_H].buttons[HC_KEY_X4] = SDLK_LEFT;
-	keys_config[HC_H].buttons[HC_KEY_OPTION] = SDLK_ESCAPE;
 	keys_config[HC_H].buttons[HC_KEY_START] = SDLK_RETURN;
 	keys_config[HC_H].buttons[HC_KEY_BTN_A] = SDLK_LCTRL;
 	keys_config[HC_H].buttons[HC_KEY_BTN_B] = SDLK_LALT;
+	keys_config[HC_H].buttons[HC_KEY_REMAP] = SDLK_TAB;
+	keys_config[HC_H].buttons[HC_KEY_EMENU] = SDLK_ESCAPE;
 
 	keys_config[HC_V].buttons[HC_KEY_Y1] = SDLK_LEFT;
 	keys_config[HC_V].buttons[HC_KEY_Y2] = SDLK_UP;
@@ -879,10 +894,11 @@ void default_config()
 	keys_config[HC_V].buttons[HC_KEY_X2] = SDLK_LALT;
 	keys_config[HC_V].buttons[HC_KEY_X3] = SDLK_LSHIFT;
 	keys_config[HC_V].buttons[HC_KEY_X4] = SDLK_SPACE;
-	keys_config[HC_V].buttons[HC_KEY_OPTION] = SDLK_ESCAPE;
 	keys_config[HC_V].buttons[HC_KEY_START] = SDLK_RETURN;
-	keys_config[HC_V].buttons[HC_KEY_BTN_A] = SDLK_UNKNOWN;
-	keys_config[HC_V].buttons[HC_KEY_BTN_B] = SDLK_UNKNOWN;
+	keys_config[HC_V].buttons[HC_KEY_BTN_A] = SDLK_BACKSPACE;
+	keys_config[HC_V].buttons[HC_KEY_BTN_B] = SDLK_TAB;
+	keys_config[HC_V].buttons[HC_KEY_REMAP] = SDLK_UNKNOWN;
+	keys_config[HC_V].buttons[HC_KEY_EMENU] = SDLK_ESCAPE;
 #else
 	keys_config[HC_H].buttons[HC_KEY_Y1] = SDLK_UNKNOWN;
 	keys_config[HC_H].buttons[HC_KEY_Y2] = SDLK_UNKNOWN;

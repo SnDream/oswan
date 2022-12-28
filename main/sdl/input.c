@@ -43,7 +43,7 @@ void exit_button(void)
 
 	/* Get to Menu hotkey */
 	if ( ((keys[key1] == SDL_PRESSED) && (keys[key2] == SDL_PRESSED)) 
-	#ifdef RG99
+	#if 0 // RG99
 	|| keys[SDLK_PAGEUP] == SDL_PRESSED
 	#endif
 	) 
