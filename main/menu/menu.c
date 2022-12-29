@@ -31,8 +31,8 @@ int SDLK2InputSel(SDLKey key)
 	case SDLK_RIGHT		:	return  4;	/* RIGHT button */
 	case SDLK_LCTRL		:	return  5;	/* A button */
 	case SDLK_LALT		:	return  6;	/* B button */
-	case SDLK_LSHIFT	:	return  7;	/* X button */
-	case SDLK_SPACE		:	return  8;	/* Y button */
+	case SDLK_SPACE		:	return  7;	/* X button */
+	case SDLK_LSHIFT	:	return  8;	/* Y button */
 	case SDLK_TAB		:	return  9;	/* L button */
 	case SDLK_BACKSPACE	:	return 10;	/* R button */
 	case SDLK_PAGEUP	:	return 11;	/* L2 button */
@@ -54,8 +54,8 @@ SDLKey InputSel2SDLK(int sel)
 	case  4	:	return SDLK_RIGHT		;	/* RIGHT button */
 	case  5	:	return SDLK_LCTRL		;	/* A button */
 	case  6	:	return SDLK_LALT		;	/* B button */
-	case  7	:	return SDLK_LSHIFT		;	/* X button */
-	case  8	:	return SDLK_SPACE		;	/* Y button */
+	case  7	:	return SDLK_SPACE		;	/* X button */
+	case  8	:	return SDLK_LSHIFT		;	/* Y button */
 	case  9	:	return SDLK_TAB			;	/* L button */
 	case 10	:	return SDLK_BACKSPACE	;	/* R button */
 	case 11	:	return SDLK_PAGEUP		;	/* L2 button */
@@ -88,10 +88,13 @@ int Menu_Main_Init(struct menu* self)
 #if !defined(RS90) && !defined(RG99)
 	print_text_center("Gameblabla's Oswan", 6);
 #else
-	print_text_center("Oswan+", 6);
+	print_text_center("Oswan+", self->menu_y - 24);
+	print_text_center(__DATE__, self->menu_y - 16);
 	if (config.custom) {
-		print_string("Custom", TextWhite, 0, self->menu_x + 240 - 6 * 8, 0, Surface_to_Draw_menu);
-		print_string("Config", TextWhite, 0, self->menu_x + 240 - 6 * 8, 8, Surface_to_Draw_menu);
+		print_string("Custom", TextWhite, 0, self->menu_x + 240 - 6 * 8,
+				self->menu_y - 24, Surface_to_Draw_menu);
+		print_string("Config", TextWhite, 0, self->menu_x + 240 - 6 * 8,
+				self->menu_y - 16, Surface_to_Draw_menu);
 	}
 #endif
 }
@@ -281,15 +284,9 @@ const char* Menu_Scaling_ConfText[] = {
 	"Fullscreen",
 	"Keep Aspect",
 #elif defined(RG99) /* Compatible with upstream */
- #ifndef SHOW_LCD_ICON
 	"Native",
-	"Hardware",
-	"Unused 1",
- #else
-	"Native",
-	"Hardware",
-	"Hardware w/o Icon",
- #endif
+	"Fullscreen",
+	"Keep Horizontal",
 #elif defined(RS90)
  #ifndef SHOW_LCD_ICON
 	"Native",
@@ -344,6 +341,30 @@ struct menu Menu_Input = {
 	.font_y			= FONT_Y_AUTO,
 };
 
+#ifdef RG99
+const char* Menu_Input_MenuInit_ItemNames[2][8] = {
+	{
+		"WS Y1 (\030)",
+		"WS Y2 (\032)",
+		"WS Y3 (\031)",
+		"WS Y4 (\033)",
+		"WS X1 (\030)",
+		"WS X2 (\032)",
+		"WS X3 (\031)",
+		"WS X4 (\033)",
+	} , {
+		"WS Y1 (\033)",
+		"WS Y2 (\030)",
+		"WS Y3 (\032)",
+		"WS Y4 (\031)",
+		"WS X1 (\033)",
+		"WS X2 (\030)",
+		"WS X3 (\032)",
+		"WS X4 (\031)",
+	}
+};
+#endif
+
 int Menu_Input_MenuInit(struct menu* self)
 {
 	int remap_mode, type;
@@ -352,6 +373,12 @@ int Menu_Input_MenuInit(struct menu* self)
 
 	type = self->pitem->conf_sel;
 	if (type != HC_H && type != HC_V) return 0;
+
+#ifdef RG99
+	for (int i = 0; i < 8; i++) {
+		self->item[i].name = Menu_Input_MenuInit_ItemNames[type][i];
+	}
+#endif
 
 	remap_mode = config.remap_mode[type];
 	switch (remap_mode) {
@@ -890,10 +917,10 @@ void default_config()
 	keys_config[HC_V].buttons[HC_KEY_Y2] = SDLK_UP;
 	keys_config[HC_V].buttons[HC_KEY_Y3] = SDLK_RIGHT;
 	keys_config[HC_V].buttons[HC_KEY_Y4] = SDLK_DOWN;
-	keys_config[HC_V].buttons[HC_KEY_X1] = SDLK_LCTRL;
-	keys_config[HC_V].buttons[HC_KEY_X2] = SDLK_LALT;
-	keys_config[HC_V].buttons[HC_KEY_X3] = SDLK_LSHIFT;
-	keys_config[HC_V].buttons[HC_KEY_X4] = SDLK_SPACE;
+	keys_config[HC_V].buttons[HC_KEY_X1] = SDLK_LSHIFT;
+	keys_config[HC_V].buttons[HC_KEY_X2] = SDLK_SPACE;
+	keys_config[HC_V].buttons[HC_KEY_X3] = SDLK_LCTRL;
+	keys_config[HC_V].buttons[HC_KEY_X4] = SDLK_LALT;
 	keys_config[HC_V].buttons[HC_KEY_START] = SDLK_RETURN;
 	keys_config[HC_V].buttons[HC_KEY_BTN_A] = SDLK_BACKSPACE;
 	keys_config[HC_V].buttons[HC_KEY_BTN_B] = SDLK_TAB;

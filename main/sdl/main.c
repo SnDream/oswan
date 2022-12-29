@@ -108,6 +108,9 @@ int main(int argc, char *argv[])
 		m_Flag = GF_GAMEINIT;
 		game_alreadyloaded = 1;
 	}
+#ifdef RG99
+	SetVideo(config.scaling);
+#endif
 
 	while (m_Flag != GF_GAMEQUIT) 
 	{

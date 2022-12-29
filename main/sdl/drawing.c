@@ -7,21 +7,31 @@
 #include "drawing_icondata.h"
 #endif
 
-SDL_Surface *actualScreen, *menuscreen, *ws_backbuffer;
+SDL_Surface *actualScreen, *menuscreen, *ws_backbuffer, *ws_extbuffer;
 struct scaling screen_scale;
 
 void SetVideo(uint8_t mode)
 {
 	int32_t flags = FLAG_VIDEO;
-	
+	#ifndef RG99
 	actualScreen = SDL_SetVideoMode(REAL_SCREEN_WIDTH, REAL_SCREEN_HEIGHT, BITDEPTH_OSWAN, FLAG_VIDEO);
+	#else
+	actualScreen = SDL_SetVideoMode(REAL_SCREEN_WIDTH, (mode && (m_Flag != GF_MAINUI))
+			? REAL_SCREEN_HEIGHT : (REAL_SCREEN_HEIGHT / 2), BITDEPTH_OSWAN, FLAG_VIDEO);
+	#endif
 	if (!menuscreen) menuscreen = SDL_CreateRGBSurface(SDL_SWSURFACE, MENU_SCREEN_WIDTH, MENU_SCREEN_HEIGHT, BITDEPTH_OSWAN, 0,0,0,0);
 	
 	#ifndef RS90
 	if (!ws_backbuffer) ws_backbuffer = SDL_CreateRGBSurface(SDL_SWSURFACE, 240, 144, BITDEPTH_OSWAN, 0,0,0,0);
 	
 	FrameBuffer = ws_backbuffer->pixels;
-	#else
+	#endif
+
+	#ifdef RG99
+		if (!ws_extbuffer) ws_extbuffer = SDL_CreateRGBSurface(SDL_SWSURFACE, 240, 144, BITDEPTH_OSWAN, 0,0,0,0);
+	#endif
+
+	#ifdef RS90
 	/* Write directly in RS90 */
 	 #ifndef SHOW_LCD_ICON
 	FrameBuffer = actualScreen->pixels + (8 * 240 + 8) * sizeof(uint16_t);
@@ -42,6 +52,13 @@ void Clear_Screen(void)
 	Update_Screen();
 	SDL_FillRect(actualScreen, NULL, 0);
 	Update_Screen();
+#endif
+#ifdef RG99
+	if (FrameBuffer != ws_backbuffer->pixels) {
+		SDL_FillRect(ws_backbuffer, NULL, 0);
+	} else {
+		SDL_FillRect(ws_extbuffer, NULL, 0);
+	}
 #endif
 }
 
@@ -78,6 +95,13 @@ void Update_Screen()
 	FrameBuffer = actualScreen->pixels + (config.scaling ? 8 * 240 + 8 : 8 * 240 + 4) * sizeof(uint16_t);
 	 #endif
 	#endif
+	#ifdef RG99
+	if (FrameBuffer != ws_backbuffer->pixels) {
+		FrameBuffer = ws_backbuffer->pixels;
+	} else {
+		FrameBuffer = ws_extbuffer->pixels;
+	}
+	#endif
 }
 
 
@@ -85,7 +109,7 @@ void Update_Screen()
  * Thus, it must be taken in account accordingly. */
 void screen_draw(void)
 {
-	#ifndef RS90
+	#if !defined(RS90) && !defined(RG99)
 	SDL_Rect rct, rct2;
 	uint16_t *src = (uint16_t *) FrameBuffer+8;	// +8 offset , width = 240
 	uint16_t *dst = (uint16_t *) actualScreen->pixels;
@@ -156,10 +180,77 @@ void screen_draw(void)
 			break;
 		}
 	}
+	#elif defined(RG99)
+	uint32_t *pp = (uint32_t *)(FrameBuffer);
+	for (int c = 0; c < 8 / 2; c++) {
+		*(pp++) = 0x0;
+	}
+	pp += 224 / 2;
+	for (int y = 0 ; y < 143; y++) {
+		for (int c = 0; c < 16 / 2; c++) {
+			*(pp++) = 0x0;
+		}
+		pp += 224 / 2;
+	}
+	for (int c = 0; c < 8 / 2; c++) {
+		*(pp++) = 0x0;
+	}
+	 #ifdef SHOW_LCD_ICON
+	pp = (uint32_t *) (FrameBuffer + 224 + 8);
+	for (int i = 0 ; i < LCD_INDEX__END; i++) {
+		uint32_t * is = (uint32_t *) (&lcd_icon_data[lcd_icon_stat[i] * ICON_DATA_U16SIZE]);
+		for (int y = 0; y < ICON_DATA_LINE_COUNT; y++) {
+			for (int c = 0; c < 16 / 4; c++) {
+				*(pp++) = *(is++);
+			}
+			pp += 232 / 2;
+		}
+	}
+	 #endif
+	static int HVMode_updated = -1;
+	if (HVMode_updated != HVMode) {
+		HVMode_updated = HVMode;
+		SDL_FillRect(actualScreen, NULL, 0);
+		if (FrameBuffer != ws_backbuffer->pixels) {
+			SDL_FillRect(ws_backbuffer, NULL, 0);
+		} else {
+			SDL_FillRect(ws_extbuffer, NULL, 0);
+		}
+	}
+	if (HVMode == 0) {
+		switch (config.scaling) {
+		default:
+		case 0:
+			static SDL_Rect rct = {.x = 40, .y = 44};
+			SDL_BlitSurface(ws_backbuffer, NULL, actualScreen, &rct);
+			break;
+		case 1:
+		case 2:
+			upscale_244x144_to_310x432_rg99(actualScreen->pixels, FrameBuffer,
+					(FrameBuffer != ws_backbuffer->pixels)
+					? ws_backbuffer->pixels : ws_extbuffer->pixels);
+			break;
+		}
+	} else {
+		switch (config.scaling) {
+		default:
+		case 0:
+			upscale_144x224_to_144x224_rotate(actualScreen->pixels, FrameBuffer + 8);
+			break;
+		case 1:
+			upscale_144x224_to_288x224_rotate(actualScreen->pixels, FrameBuffer + 8);
+			break;
+		case 2:
+			upscale_244x144_to_310x432_rg99(actualScreen->pixels, FrameBuffer,
+					(FrameBuffer != ws_backbuffer->pixels)
+					? ws_backbuffer->pixels : ws_extbuffer->pixels);
+			break;
+		}
+	}
 
-	#else
+	#elif defined(RS90)
 	/* RefreshLine sometimes draws outside the border */
-	uint32_t *pp = (uint32_t *)(FrameBuffer - 8 * sizeof(uint16_t));
+	uint32_t *pp = (uint32_t *)(FrameBuffer - 16);
 	for (int y = 0 ; y < 145; y++) {
 		for (int c = 0; c < 16 / 2; c++) {
 			*(pp++) = 0x0;
@@ -168,7 +259,7 @@ void screen_draw(void)
 	}
 	 #ifdef SHOW_LCD_ICON
 	if (config.scaling != 2) {
-		pp = (uint32_t *) (FrameBuffer + 232 * sizeof(uint16_t));
+		pp = (uint32_t *)(FrameBuffer + 232 - 8);
 		for (int i = 0 ; i < LCD_INDEX__END; i++) {
 			uint32_t * is = (uint32_t *) (&lcd_icon_data[lcd_icon_stat[i] * ICON_DATA_U16SIZE]);
 			for (int y = 0; y < ICON_DATA_LINE_COUNT; y++) {

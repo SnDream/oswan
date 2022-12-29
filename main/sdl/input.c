@@ -50,7 +50,7 @@ void exit_button(void)
 	{ 
 		m_Flag = GF_MAINUI;
 	#ifndef RS90
-		SetVideo(1);
+		SetVideo(config.scaling);
 	#endif
 	}
 }

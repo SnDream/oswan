@@ -1,7 +1,7 @@
 Oswan+ by SnDream
 ======================
 
-Oswan+ is a fork of Gameblabla's Oswan, aimed at a better experience on the RS-90.
+Oswan+ is a fork of Gameblabla's Oswan, aimed at a better experience on the RS90 / RG99.
 
 This fork tries to improve the speed, supports large ROMs (4M+), simple LCD icon emulation, and some other features.
 
@@ -9,7 +9,7 @@ The key into the emulator menu:
 
 First, "Emu Menu" (if configured). Second, "Remap Switch" + "WS START" (if the combination is legal). Finally, Select + Start key.
 
-Press Select (Horizontal) / L + R (Vertical) into emulator menu in default.
+Press Select (RS90 Horizontal / RG99) or L + R (RS90 Vertical only) into emulator menu in default.
 
 Gameblabla's Oswan
 =======================
